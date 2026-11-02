@@ -1980,7 +1980,7 @@
             { key: 'pulledBack', label: 'Pull-back EOD', full: 'Will be pulled back today EOD: callback due today and not yet called' },
             { key: 's2callback', label: 'Callback Req.', full: 'Callback requested since 1 Oct and not called, OR AI-qualified in last 15 days' },
             { key: 'visitBooked', label: 'Visit Booked (21 Oct onwards)', full: 'Branch or home visit scheduled on/after 21 Oct' },
-            { key: 'visitDone', label: 'Visit Done (21 Oct onwards)', full: 'Visit done date after its scheduled date, scheduled on/after 21 Oct' },
+            { key: 'visitDone', label: 'Visit Done (21 Oct onwards)', full: 'Branch or home visit done on/after 21 Oct' },
             { key: 'rccHyb', label: 'RCC/HYB Adm AY27', full: 'Product opp Admission Done, RCC/HYB course, terms 2728–2731' },
         ];
         const FUNNEL_STAGES = [
@@ -2030,7 +2030,7 @@
                 // Section 02 "Callback Req.": existing callback logic OR AI-qualified in last 15 days
                 s2callback: `((${CB} >= ${DATES.WA_CB_FROM} AND ${CB} <= ${T_E} AND (${LC} IS NULL OR ${LC} < ${CB})) OR (${AI} >= ${DATES.AI_S} AND ${AI} <= ${T_E}))`,
                 visitBooked: `((${BB} >= ${VF}) OR (${HB} >= ${VF}))`,
-                visitDone: `((${BB} >= ${VF} AND ${BD} > ${BB}) OR (${HB} >= ${VF} AND ${HD} > ${HB}))`,
+                visitDone: `((${BD} >= ${VF}) OR (${HD} >= ${VF}))`,
                 rccHyb: rccHybExists,
             };
         }
@@ -2393,7 +2393,7 @@
         // ═══════════════════════════════════════════════════════════════
         const CAP_CACHE_TTL = 30 * 60 * 1000, CAP_CACHE_MAX = 30;
         // const CAP_CACHE_PREFIX = 'lfcap4:', CAP_CACHE_IDX = 'lfcap4:index';
-        const CAP_CACHE_PREFIX = 'lfcap5:', CAP_CACHE_IDX = 'lfcap5:index';
+        const CAP_CACHE_PREFIX = 'lfcap6:', CAP_CACHE_IDX = 'lfcap6:index';
         const META_CACHE_TTL = 60 * 60 * 1000;
         const META_PREFIX = 'lfmeta:' + (token ? token.split(':')[0] : 'anon') + ':';
         const LAST_FILTERS_KEY = 'lf:lastFilters3';

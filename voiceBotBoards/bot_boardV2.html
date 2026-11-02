@@ -1,0 +1,1915 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <script>
+        window.onerror = function (m, s, l, c, e) { window.parent.postMessage({ type: 'dashboard-error', error: { message: m, source: s, line: l, stack: e?.stack } }, '*'); return false; };
+        window.addEventListener('unhandledrejection', e => { window.parent.postMessage({ type: 'dashboard-error', error: { message: 'Unhandled Promise Rejection', reason: e.reason?.message || String(e.reason) } }, '*'); });
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visit and Admission Conversion</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --ink: #14202b;
+            --mut: #5f6f7d;
+            --faint: #93a1ad;
+            --line: #e3e8ec;
+            --bg: #f7f9fa;
+            --paper: #fff;
+            --teal: #175259;
+            --teal-d: #0f3d42;
+            --teal-l: #e6f1f2;
+            --branch: #175259;
+            --home: #d9820b;
+            --both: #6d4fc2;
+            --total: #b4c0ca;
+            --ok: #1a8f4c;
+            --ok-l: #e3f5ea;
+            --drop: #f4b9b0;
+            --bad: #c4372a;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Manrope', -apple-system, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--ink);
+            font-size: 13.5px;
+            line-height: 1.45;
+            -webkit-font-smoothing: antialiased;
+            font-variant-numeric: tabular-nums;
+        }
+
+        button,
+        input {
+            font-family: inherit;
+            font-size: inherit;
+            color: inherit;
+        }
+
+        button {
+            cursor: pointer;
+        }
+
+        :focus-visible {
+            outline: 2px solid var(--teal);
+            outline-offset: 2px;
+        }
+
+        .wrap {
+            max-width: 1240px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        .muted {
+            color: var(--mut);
+        }
+
+        /* ---------- top ---------- */
+        .top {
+            background: var(--paper);
+            border-bottom: 1px solid var(--line);
+        }
+
+        .top .wrap {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            padding-top: 18px;
+            padding-bottom: 16px;
+            flex-wrap: wrap;
+        }
+
+        h1 {
+            font-size: 21px;
+            font-weight: 800;
+            letter-spacing: -.02em;
+            color: var(--teal-d);
+        }
+
+        .sub {
+            color: var(--mut);
+            font-size: 13px;
+            margin-top: 2px;
+        }
+
+        .acts {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .seg {
+            display: inline-flex;
+            background: #eef2f4;
+            border-radius: 10px;
+            padding: 3px;
+        }
+
+        .seg button {
+            border: 0;
+            background: transparent;
+            padding: 6px 14px;
+            border-radius: 8px;
+            font-weight: 600;
+            color: var(--mut);
+            transition: background .15s, color .15s;
+        }
+
+        .seg button.on {
+            background: var(--paper);
+            color: var(--teal-d);
+            box-shadow: 0 1px 3px rgba(20, 32, 43, .12);
+        }
+
+        .btn {
+            border: 1px solid #cfd8de;
+            background: var(--paper);
+            border-radius: 9px;
+            padding: 8px 16px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: background .15s;
+        }
+
+        .btn:hover {
+            background: #f1f5f7;
+        }
+
+        .btn.primary {
+            background: var(--teal);
+            border-color: var(--teal);
+            color: #fff;
+        }
+
+        .btn.primary:hover {
+            background: var(--teal-d);
+        }
+
+        .btn:disabled {
+            opacity: .45;
+            cursor: not-allowed;
+        }
+
+        /* ---------- upload ---------- */
+        .upload {
+            padding: 22px 0 8px;
+        }
+
+        .up-grid {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 16px;
+            align-items: stretch;
+        }
+
+        .drop {
+            border: 1.5px dashed #b9c6ce;
+            border-radius: 14px;
+            background: var(--paper);
+            padding: 20px 24px;
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            cursor: pointer;
+            transition: border-color .15s, background .15s;
+        }
+
+        .drop:hover,
+        .drop.over {
+            border-color: var(--teal);
+            background: var(--teal-l);
+        }
+
+        .drop .ico {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            background: var(--teal-l);
+            color: var(--teal);
+            display: grid;
+            place-items: center;
+            flex-shrink: 0;
+        }
+
+        .drop b {
+            display: block;
+            font-size: 14.5px;
+        }
+
+        .drop span {
+            color: var(--mut);
+            font-size: 12.5px;
+        }
+
+        .drop.has {
+            border-style: solid;
+            border-color: var(--teal);
+            background: var(--teal-l);
+        }
+
+        .go {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 8px;
+            min-width: 190px;
+        }
+
+        .go .btn {
+            justify-content: center;
+            padding: 12px 22px;
+            font-size: 14px;
+        }
+
+        .prog {
+            height: 6px;
+            background: #e3eaee;
+            border-radius: 99px;
+            overflow: hidden;
+            display: none;
+        }
+
+        .prog i {
+            display: block;
+            height: 100%;
+            width: 0;
+            background: var(--teal);
+            transition: width .25s;
+        }
+
+        .prog-t {
+            font-size: 12px;
+            color: var(--mut);
+            display: none;
+        }
+
+        .err {
+            display: none;
+            margin-top: 12px;
+            background: #fdeeec;
+            border: 1px solid #f2b8b1;
+            color: #8c2217;
+            padding: 10px 14px;
+            border-radius: 10px;
+        }
+
+        .notice {
+            display: none;
+            margin-top: 12px;
+            background: #fff7e6;
+            border: 1px solid #f1d28c;
+            color: #7a5200;
+            padding: 10px 14px;
+            border-radius: 10px;
+        }
+
+        /* ---------- filter bar ---------- */
+        .fbar {
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            background: rgba(247, 249, 250, .94);
+            backdrop-filter: blur(8px);
+            border-bottom: 1px solid var(--line);
+            display: none;
+        }
+
+        .fbar .wrap {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding-top: 10px;
+            padding-bottom: 10px;
+            flex-wrap: wrap;
+        }
+
+        .fl {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--mut);
+        }
+
+        .ms {
+            position: relative;
+        }
+
+        .ms-b {
+            min-width: 230px;
+            background: var(--paper);
+            border: 1px solid #cfd8de;
+            border-radius: 9px;
+            padding: 7px 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            font-weight: 600;
+            text-align: left;
+        }
+
+        .ms-b.on {
+            border-color: var(--teal);
+            background: var(--teal-l);
+            color: var(--teal-d);
+        }
+
+        .ms-p {
+            display: none;
+            position: absolute;
+            top: calc(100% + 6px);
+            left: 0;
+            width: 330px;
+            background: var(--paper);
+            border-radius: 12px;
+            box-shadow: 0 12px 32px rgba(20, 32, 43, .16), 0 0 0 1px rgba(20, 32, 43, .06);
+            padding: 10px;
+            z-index: 60;
+        }
+
+        .ms-p.open {
+            display: block;
+        }
+
+        .ms-p input[type=search] {
+            width: 100%;
+            padding: 8px 10px;
+            border: 1px solid #cfd8de;
+            border-radius: 8px;
+            margin-bottom: 8px;
+        }
+
+        .ms-tools {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            margin-bottom: 6px;
+        }
+
+        .ms-tools button {
+            background: none;
+            border: 0;
+            color: var(--teal);
+            font-weight: 600;
+        }
+
+        .ms-l {
+            max-height: 280px;
+            overflow: auto;
+        }
+
+        .ms-l label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 6px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        .ms-l label:hover {
+            background: #f1f5f7;
+        }
+
+        .ms-l label span {
+            margin-left: auto;
+            color: var(--faint);
+            font-size: 12px;
+        }
+
+        .ms-l input {
+            accent-color: var(--teal);
+        }
+
+        .fcount {
+            margin-left: auto;
+            color: var(--mut);
+            font-size: 12.5px;
+        }
+
+        .fcount b {
+            color: var(--ink);
+        }
+
+        /* ---------- output ---------- */
+        #out {
+            display: none;
+            padding-bottom: 60px;
+        }
+
+        section.blk {
+            padding: 34px 0 6px;
+            border-bottom: 1px solid var(--line);
+        }
+
+        section.blk:last-of-type {
+            border-bottom: 0;
+        }
+
+        h2 {
+            font-size: 16.5px;
+            font-weight: 800;
+            letter-spacing: -.01em;
+        }
+
+        .h2sub {
+            color: var(--mut);
+            margin: 2px 0 16px;
+            max-width: 70ch;
+        }
+
+        .kpis {
+            display: grid;
+            grid-template-columns: 1.1fr 1fr 1fr 1fr 1.25fr;
+            background: var(--paper);
+            border: 1px solid var(--line);
+            border-radius: 16px;
+            overflow: hidden;
+            margin-top: 26px;
+        }
+
+        .kpi {
+            padding: 20px 22px 18px;
+            border-right: 1px solid var(--line);
+            min-width: 0;
+        }
+
+        .kpi:last-child {
+            border-right: 0;
+        }
+
+        .kl {
+            color: var(--mut);
+            font-weight: 600;
+            font-size: 12.5px;
+        }
+
+        .kv {
+            font-size: 34px;
+            font-weight: 800;
+            letter-spacing: -.03em;
+            margin: 4px 0 2px;
+            line-height: 1.1;
+        }
+
+        .ks {
+            color: var(--mut);
+            font-size: 12.5px;
+        }
+
+        .kpi.hero {
+            background: var(--teal-d);
+            color: #fff;
+        }
+
+        .kpi.hero .kl,
+        .kpi.hero .ks {
+            color: #bcd8db;
+        }
+
+        .kpi.hero .kv {
+            font-size: 40px;
+        }
+
+        /* waterfall list (numbers) */
+        .steps {
+            background: var(--paper);
+            border: 1px solid var(--line);
+            border-radius: 16px;
+            overflow: hidden;
+        }
+
+        .step {
+            display: grid;
+            grid-template-columns: 230px 120px 1fr 200px;
+            gap: 18px;
+            align-items: center;
+            padding: 14px 22px;
+            border-bottom: 1px solid var(--line);
+        }
+
+        .step:last-child {
+            border-bottom: 0;
+        }
+
+        .step .nm {
+            font-weight: 700;
+        }
+
+        .step .nm small {
+            display: block;
+            font-weight: 500;
+            color: var(--mut);
+            font-size: 12px;
+        }
+
+        .step .vl {
+            font-size: 22px;
+            font-weight: 800;
+            letter-spacing: -.02em;
+        }
+
+        .trk {
+            height: 10px;
+            background: #edf1f3;
+            border-radius: 99px;
+            overflow: hidden;
+        }
+
+        .trk i {
+            display: block;
+            height: 100%;
+            border-radius: 99px;
+            background: var(--teal);
+            transform-origin: left;
+            animation: grow .7s cubic-bezier(.2, .7, .2, 1) both;
+        }
+
+        .step .rt {
+            text-align: right;
+            color: var(--mut);
+            font-size: 12.5px;
+        }
+
+        .step .rt b {
+            color: var(--teal-d);
+            font-size: 15px;
+            display: block;
+        }
+
+        .step.loss {
+            background: #fdf6f5;
+        }
+
+        .step.loss .vl {
+            color: var(--bad);
+            font-size: 17px;
+        }
+
+        .step.loss .trk i {
+            background: var(--drop);
+        }
+
+        .step.loss .nm {
+            font-weight: 600;
+            color: #7a3a32;
+        }
+
+        @keyframes grow {
+            from {
+                transform: scaleX(0);
+            }
+        }
+
+        /* buttons that are numbers */
+        .num {
+            border: 0;
+            background: none;
+            font-weight: 700;
+            color: var(--teal);
+            padding: 1px 4px;
+            margin: -1px -4px;
+            border-radius: 5px;
+            text-decoration: underline;
+            text-decoration-color: rgba(23, 82, 89, .25);
+            text-underline-offset: 3px;
+        }
+
+        .num:hover {
+            background: var(--teal-l);
+            text-decoration-color: var(--teal);
+        }
+
+        .zero {
+            color: var(--faint);
+        }
+
+        /* tables */
+        .tw {
+            background: var(--paper);
+            border: 1px solid var(--line);
+            border-radius: 16px;
+            overflow: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            text-align: right;
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--mut);
+            padding: 11px 16px;
+            border-bottom: 1px solid var(--line);
+            white-space: nowrap;
+            background: #fbfcfd;
+            position: sticky;
+            top: 0;
+            z-index: 1;
+        }
+
+        th:first-child,
+        td:first-child {
+            text-align: left;
+        }
+
+        td {
+            text-align: right;
+            padding: 11px 16px;
+            border-bottom: 1px solid #eff2f4;
+            white-space: nowrap;
+        }
+
+        tr:last-child td {
+            border-bottom: 0;
+        }
+
+        th.sort {
+            cursor: pointer;
+            user-select: none;
+        }
+
+        th.sort:hover {
+            color: var(--teal);
+        }
+
+        th.sort.cur::after {
+            content: attr(data-dir);
+            margin-left: 4px;
+            color: var(--teal);
+        }
+
+        td.nm {
+            font-weight: 600;
+        }
+
+        tr.sec td {
+            background: #f4f7f8;
+            font-weight: 700;
+            color: var(--mut);
+            font-size: 12px;
+            padding: 7px 16px;
+        }
+
+        tr.tot td {
+            background: #f4f7f8;
+            font-weight: 800;
+        }
+
+        .dot {
+            display: inline-block;
+            width: 9px;
+            height: 9px;
+            border-radius: 3px;
+            margin-right: 8px;
+            vertical-align: baseline;
+        }
+
+        .pct {
+            color: var(--ink);
+            font-weight: 700;
+        }
+
+        .tag {
+            display: inline-block;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 1px 8px;
+            border-radius: 99px;
+            margin-left: 8px;
+            background: #fdf0d9;
+            color: #8a5200;
+        }
+
+        .scroll {
+            max-height: 440px;
+        }
+
+        .two {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 28px;
+            align-items: start;
+        }
+
+        .tri {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 28px;
+            align-items: start;
+        }
+
+        .note {
+            color: var(--mut);
+            font-size: 12.5px;
+            margin: 10px 2px 0;
+        }
+
+        /* graphs */
+        body:not(.graphs) .g {
+            display: none !important;
+        }
+
+        .gpanel {
+            background: var(--paper);
+            border: 1px solid var(--line);
+            border-radius: 16px;
+            padding: 18px 20px 12px;
+            margin-bottom: 18px;
+        }
+
+        .gpanel h3 {
+            font-size: 13.5px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        svg text {
+            font-family: 'Manrope', sans-serif;
+        }
+
+        .axis {
+            stroke: #c9d3da;
+            stroke-width: 1;
+        }
+
+        .conn {
+            stroke: #aebbc4;
+            stroke-width: 1;
+            stroke-dasharray: 3 3;
+        }
+
+        .bar {
+            cursor: pointer;
+            transform-box: fill-box;
+            transform-origin: bottom;
+            animation: rise .8s cubic-bezier(.2, .7, .2, 1) both;
+            transition: opacity .15s;
+        }
+
+        .bar:hover {
+            opacity: .8;
+        }
+
+        @keyframes rise {
+            from {
+                transform: scaleY(0);
+            }
+        }
+
+        .wv {
+            font-size: 15px;
+            font-weight: 800;
+            fill: var(--ink);
+            text-anchor: middle;
+        }
+
+        .wp {
+            font-size: 11px;
+            fill: var(--mut);
+            text-anchor: middle;
+            font-weight: 600;
+        }
+
+        .wl {
+            font-size: 11.5px;
+            fill: var(--ink);
+            text-anchor: middle;
+            font-weight: 600;
+        }
+
+        .wr {
+            font-size: 11px;
+            fill: var(--teal);
+            text-anchor: middle;
+            font-weight: 700;
+        }
+
+        .wn {
+            fill: var(--bad);
+        }
+
+        .legend {
+            display: flex;
+            gap: 18px;
+            flex-wrap: wrap;
+            font-size: 12.5px;
+            color: var(--mut);
+            margin: 4px 0 8px;
+        }
+
+        .legend i {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 3px;
+            margin-right: 6px;
+        }
+
+        .donut-row {
+            display: flex;
+            align-items: center;
+            gap: 22px;
+        }
+
+        .donut {
+            width: 150px;
+            height: 150px;
+            flex-shrink: 0;
+        }
+
+        .donut circle {
+            cursor: pointer;
+            transition: opacity .15s;
+        }
+
+        .donut circle:hover {
+            opacity: .8;
+        }
+
+        .dn {
+            font-size: 21px;
+            font-weight: 800;
+            text-anchor: middle;
+            fill: var(--ink);
+        }
+
+        .ds {
+            font-size: 9.5px;
+            text-anchor: middle;
+            fill: var(--mut);
+            font-weight: 600;
+        }
+
+        .dl {
+            display: grid;
+            gap: 8px;
+            font-size: 13px;
+        }
+
+        .dl div {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .hb {
+            display: grid;
+            grid-template-columns: 190px 1fr 70px;
+            gap: 12px;
+            align-items: center;
+            padding: 5px 0;
+        }
+
+        .hb .l {
+            font-weight: 600;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .hb .t {
+            height: 14px;
+            background: #edf1f3;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        .hb .t i {
+            display: block;
+            height: 100%;
+            border-radius: 5px;
+            transform-origin: left;
+            animation: grow .7s cubic-bezier(.2, .7, .2, 1) both;
+        }
+
+        .hb .v {
+            text-align: right;
+        }
+
+        .mini {
+            display: grid;
+            grid-template-columns: 190px 1fr;
+            gap: 12px;
+            align-items: center;
+            padding: 6px 0;
+        }
+
+        .mini .l {
+            font-weight: 600;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .mini .b {
+            display: grid;
+            gap: 3px;
+        }
+
+        .mini .r {
+            display: grid;
+            grid-template-columns: 1fr 64px;
+            gap: 8px;
+            align-items: center;
+            font-size: 11.5px;
+            color: var(--mut);
+        }
+
+        .mini .r span {
+            height: 7px;
+            background: #edf1f3;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .mini .r span i {
+            display: block;
+            height: 100%;
+            border-radius: 4px;
+            transform-origin: left;
+            animation: grow .7s cubic-bezier(.2, .7, .2, 1) both;
+        }
+
+        .mini .r em {
+            font-style: normal;
+            text-align: right;
+        }
+
+        details.how {
+            margin: 30px 0 0;
+            background: var(--paper);
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            padding: 14px 20px;
+        }
+
+        details.how summary {
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        details.how ul {
+            margin: 10px 0 2px 18px;
+            color: var(--mut);
+            display: grid;
+            gap: 6px;
+            max-width: 95ch;
+        }
+
+        details.how b {
+            color: var(--ink);
+        }
+
+        .empty {
+            text-align: center;
+            padding: 64px 20px 80px;
+            color: var(--mut);
+        }
+
+        .empty h2 {
+            color: var(--ink);
+            margin-bottom: 6px;
+        }
+
+        .loader {
+            width: 30px;
+            height: 30px;
+            border: 3px solid #e3eaee;
+            border-top-color: var(--teal);
+            border-radius: 50%;
+            animation: spin .8s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* ---------- drawer ---------- */
+        .scrim {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 30, 40, .45);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity .2s;
+            z-index: 200;
+        }
+
+        .scrim.open {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .drawer {
+            position: fixed;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            width: min(1060px, 96vw);
+            background: var(--paper);
+            z-index: 210;
+            transform: translateX(102%);
+            transition: transform .28s cubic-bezier(.2, .7, .2, 1);
+            display: flex;
+            flex-direction: column;
+            box-shadow: -12px 0 40px rgba(15, 30, 40, .2);
+        }
+
+        .drawer.open {
+            transform: none;
+        }
+
+        .dh {
+            padding: 18px 22px 14px;
+            border-bottom: 1px solid var(--line);
+            display: grid;
+            gap: 12px;
+        }
+
+        .dh-r {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .dh h3 {
+            font-size: 17px;
+            font-weight: 800;
+        }
+
+        .dh-r button.x {
+            border: 0;
+            background: #eef2f4;
+            width: 32px;
+            height: 32px;
+            border-radius: 9px;
+            font-size: 18px;
+        }
+
+        .dh-t {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .dh-t input {
+            flex: 1;
+            padding: 8px 12px;
+            border: 1px solid #cfd8de;
+            border-radius: 9px;
+        }
+
+        .db {
+            flex: 1;
+            overflow: auto;
+        }
+
+        .db table td,
+        .db table th {
+            text-align: left;
+            font-size: 12.5px;
+        }
+
+        .db tbody tr:hover td {
+            background: #f7fafb;
+        }
+
+        .db a {
+            color: var(--teal);
+            font-weight: 600;
+        }
+
+        .dp {
+            border-top: 1px solid var(--line);
+            padding: 10px 22px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: var(--mut);
+            font-size: 12.5px;
+        }
+
+        .chip {
+            display: inline-block;
+            padding: 1px 9px;
+            border-radius: 99px;
+            font-size: 11.5px;
+            font-weight: 700;
+        }
+
+        .chip.branch {
+            background: #dcecee;
+            color: var(--teal-d);
+        }
+
+        .chip.home {
+            background: #fdecd0;
+            color: #8a5200;
+        }
+
+        .chip.both {
+            background: #e8e1f8;
+            color: #4a2fa0;
+        }
+
+        .chip.none {
+            background: #eef2f4;
+            color: var(--mut);
+        }
+
+        .chip.ok {
+            background: var(--ok-l);
+            color: #11693a;
+        }
+
+        @media (max-width: 980px) {
+            .kpis {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .kpi {
+                border-bottom: 1px solid var(--line);
+            }
+
+            .step {
+                grid-template-columns: 1fr 90px;
+            }
+
+            .step .trk,
+            .step .rt {
+                grid-column: 1 / -1;
+                text-align: left;
+            }
+
+            .two,
+            .tri,
+            .up-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .hb,
+            .mini {
+                grid-template-columns: 120px 1fr 60px;
+            }
+
+            .mini {
+                grid-template-columns: 120px 1fr;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+
+            *,
+            *::before,
+            *::after {
+                animation: none !important;
+                transition: none !important;
+            }
+        }
+
+        @media print {
+
+            .top .acts,
+            .upload,
+            .fbar,
+            .scrim,
+            .drawer {
+                display: none !important;
+            }
+
+            body {
+                background: #fff;
+            }
+
+            .g {
+                display: block !important;
+            }
+
+            section.blk {
+                break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header class="top">
+        <div class="wrap">
+            <div>
+                <h1>Visit and admission conversion</h1>
+                <div class="sub">What happened to the leads our AI called: visit booked, visit done, admission.</div>
+            </div>
+            <div class="acts">
+                <div class="seg" id="viewSeg" style="display:none">
+                    <button class="on" data-v="num">Numbers</button>
+                    <button data-v="gr">With graphs</button>
+                </div>
+                <button class="btn" id="exSum" style="display:none">Download summary</button>
+                <button class="btn" id="exAll" style="display:none">Download all leads</button>
+                <button class="btn" id="prt" style="display:none">Print</button>
+            </div>
+        </div>
+    </header>
+
+    <div class="wrap upload">
+        <div class="up-grid">
+            <label class="drop" id="drop" for="file">
+                <div class="ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 16V4M6 10l6-6 6 6M4 20h16" />
+                    </svg></div>
+                <div id="dropTxt">
+                    <b>Upload the leads list (CSV)</b>
+                    <span>One column with lead_id, id, associated_lead.id or record_id. If none of these is found, the
+                        first column is used.</span>
+                </div>
+                <input type="file" id="file" accept=".csv,.txt,text/csv" hidden>
+            </label>
+            <div class="go">
+                <button class="btn primary" id="run" disabled>Analyse leads</button>
+                <div class="prog" id="prog"><i></i></div>
+                <div class="prog-t" id="progT"></div>
+            </div>
+        </div>
+        <div class="err" id="err"></div>
+        <div class="notice" id="notice"></div>
+    </div>
+
+    <div class="fbar" id="fbar">
+        <div class="wrap">
+            <span class="fl">Booked-for branch</span>
+            <div class="ms" id="ms">
+                <button type="button" class="ms-b" id="msB"><span id="msT">All branches</span><span>▾</span></button>
+                <div class="ms-p" id="msP">
+                    <input type="search" id="msS" placeholder="Search branch">
+                    <div class="ms-tools"><button type="button" id="msAll">Select all shown</button><button
+                            type="button" id="msClr">Clear</button></div>
+                    <div class="ms-l" id="msL"></div>
+                </div>
+            </div>
+            <div class="fcount" id="fcount"></div>
+        </div>
+    </div>
+
+    <main class="wrap" id="main">
+        <div id="empty" class="empty">
+            <h2>Upload a list to see the picture</h2>
+            <p>Upload the leads the AI has called, then click Analyse leads. Booking, visit and admission numbers appear
+                here.</p>
+        </div>
+        <div id="loading" style="display:none">
+            <div class="loader"></div>
+        </div>
+
+        <div id="out">
+            <div class="kpis" id="kpis"></div>
+
+            <section class="blk">
+                <h2>Waterfall: from lead to admission</h2>
+                <p class="h2sub">Each step shows how many leads made it through and how many dropped off. Click any
+                    number to see the leads.</p>
+                <div class="gpanel g" id="wfSvg"></div>
+                <div class="steps" id="steps"></div>
+                <p class="note" id="wfNote"></p>
+            </section>
+
+            <section class="blk">
+                <h2>Branch visit, home visit, or both</h2>
+                <p class="h2sub">Type is based on which scheduled date the lead has. Leads that have both dates are kept
+                    in their own group.</p>
+                <div class="two g" style="margin-bottom:18px">
+                    <div class="gpanel" style="margin:0">
+                        <h3>Visits booked, by type</h3>
+                        <div class="donut-row" id="dBooked"></div>
+                    </div>
+                    <div class="gpanel" style="margin:0">
+                        <h3>Visits done, by where they happened</h3>
+                        <div class="donut-row" id="dDone"></div>
+                    </div>
+                </div>
+                <div class="tw">
+                    <table id="tTypes"></table>
+                </div>
+            </section>
+
+            <section class="blk">
+                <h2>Where visits were booked and where they happened</h2>
+                <p class="h2sub">A lead may book a branch visit and then visit at home (or the reverse). Those switches
+                    show in amber.</p>
+                <div class="tw">
+                    <table id="tMatrix"></table>
+                </div>
+            </section>
+
+            <section class="blk">
+                <h2>What happened after the visit</h2>
+                <p class="h2sub">For leads who visited, the stage they moved to after the visit date. Leads whose stage
+                    did not change after the visit are counted separately.</p>
+                <div class="gpanel g" id="stageG"></div>
+                <div class="tw">
+                    <table id="tStage"></table>
+                </div>
+                <p class="note" id="stageNote"></p>
+            </section>
+
+            <section class="blk">
+                <h2>Branch performance</h2>
+                <p class="h2sub">Click a column title to sort.</p>
+                <div class="gpanel g" id="brG"></div>
+                <div class="tw scroll">
+                    <table id="tBranch"></table>
+                </div>
+            </section>
+
+            <section class="blk">
+                <h2>Who booked the visit</h2>
+                <p class="h2sub">Team of the person who booked the visit, taken from the booked-by user.</p>
+                <div class="tw">
+                    <table id="tTeam"></table>
+                </div>
+            </section>
+
+            <details class="how">
+                <summary>How these numbers are worked out</summary>
+                <ul>
+                    <li><b>Visit booked:</b> the lead has a branch visit scheduled date or a home visit scheduled date.
+                        Both present means "booked for both".</li>
+                    <li><b>Visit done:</b> a visit done date exists and is on or after the day of the scheduled visit.
+                        Same-day visits count because the done date has no time.</li>
+                    <li><b>Visit done at:</b> decided only by which done date has data, so a lead who booked branch but
+                        visited home shows as Home.</li>
+                    <li><b>Stage after visit:</b> the lead's current stage, only if the stage was updated on or after
+                        the visit done date. Otherwise it is counted as "No stage update after visit".</li>
+                    <li><b>Admission:</b> visited leads whose stage after the visit is Admission Done.</li>
+                    <li><b>Visit due:</b> a booked visit whose scheduled date is today or earlier. Visits scheduled for
+                        a future date are shown as "Not yet due" and are left out of the visit rate.</li>
+                    <li><b>Conversion rates:</b> booking rate is booked out of analysed, visit rate is done out of due
+                        visits, admission rate is admitted out of visited, overall is admitted out of analysed.</li>
+                </ul>
+            </details>
+        </div>
+    </main>
+
+    <div class="scrim" id="scrim"></div>
+    <aside class="drawer" id="drawer" aria-hidden="true">
+        <div class="dh">
+            <div class="dh-r">
+                <h3 id="dTitle"></h3><button class="x" id="dClose" aria-label="Close">×</button>
+            </div>
+            <div class="dh-t"><input type="search" id="dSearch"
+                    placeholder="Search by name, PSID, branch, stage"><button class="btn" id="dExport">Download
+                    list</button></div>
+        </div>
+        <div class="db" id="dBody"></div>
+        <div class="dp" id="dPager"></div>
+    </aside>
+
+    <script>
+        // ═══════════════════════════════════════════════════════════════
+        // CONFIG
+        // ═══════════════════════════════════════════════════════════════
+        const BASE_URL = 'https://aakash.superleap.com';
+        const API_URL = BASE_URL + '/api/v1/reports/execute';
+        const token = new URLSearchParams(window.location.search).get('token');
+
+        const CHUNK = 300;          // lead ids per query
+        const CONC = 4;             // parallel queries
+        const PAGE = 50;            // rows per page in the drill-down
+
+        // Lead fields
+        const FLD = {
+            bSched: 'branch_visit_scheduled_for_date_time', hSched: 'home_visit_scheduled_date_time',
+            bDone: 'branch_visit_done_date', hDone: 'home_visit_done_date',
+            bBy: 'branch_visit_booked_by', hBy: 'home_visit_booked_by',
+            stage: 'stage', stageUpd: 'stage_update_on',          // ⚠ confirm API name of "Stage updated on"
+            session: 'session_booked_for_branch',
+            psid: 'AESL_PS_ID__c',
+        };
+        const USER_DEPT = 'new_department';
+        const USER_BRANCH = 'user_branch_name_user_management_';
+
+        // Accepted id column names, in priority order
+        const ID_HEADERS = ['lead_id', 'id', 'associated_lead.id', 'record_id'];
+
+        const STAGES = ['Untouched Lead', 'Not-Connected', 'Call Back', 'Qualified Lead', 'Qualified: Branch visit Booked', 'Qualified: Branch visit Done', 'Qualified: House visit Booked', 'Qualified: House visit Done', 'Not-Interested', 'Not-Eligible', 'Admission Done'];
+        const ADMISSION = 'Admission Done';
+        const NO_UPDATE = 'No stage update after visit';
+
+        const COL = { branch: '#175259', home: '#d9820b', both: '#6d4fc2', total: '#b4c0ca', ok: '#1a8f4c', drop: '#f4b9b0' };
+        const LBL = { branch: 'Branch visit', home: 'Home visit', both: 'Booked for both', none: 'Not booked' };
+        const LBL_DONE = { branch: 'Branch', home: 'Home', both: 'Branch and home', none: 'Not visited' };
+
+        // ═══════════════════════════════════════════════════════════════
+        // HELPERS
+        // ═══════════════════════════════════════════════════════════════
+        const $ = id => document.getElementById(id);
+        const IST = 5.5 * 3600 * 1000;
+        const dayStart = ts => { const d = new Date(Number(ts) + IST); d.setUTCHours(0, 0, 0, 0); return d.getTime() - IST; };
+        const esc = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        const sq = arr => arr.map(v => `'${String(v).replace(/'/g, "''")}'`).join(',');
+        const sleep = ms => new Promise(r => setTimeout(r, ms));
+        const fmt = n => Number(n).toLocaleString('en-IN');
+        const pc = (a, b) => b ? (a / b * 100).toFixed(1) + '%' : '-';
+        const fmtDate = e => e ? new Date(Number(e)).toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata', day: '2-digit', month: 'short', year: '2-digit' }) : '-';
+        const EOD = (() => { const d = new Date(Date.now() + IST); d.setUTCHours(23, 59, 59, 999); return d.getTime() - IST; })();   // end of today, IST
+        const ts = v => (v === '' || v == null || isNaN(Number(v))) ? null : Number(v);
+
+        async function safe(fn, retries = 3) {
+            let last;
+            for (let i = 0; i < retries; i++) { try { return await fn(); } catch (e) { last = e; if (i < retries - 1) await sleep(600 * (i + 1)); } }
+            throw last;
+        }
+        async function post(url, q, slug) {
+            const r = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ query: q, slug }) });
+            if (!r.ok) throw new Error(`HTTP ${r.status}: ${await r.text()}`);
+            const j = await r.json();
+            if (!j.success) throw new Error(j.data?.message || 'API error');
+            return j.data;
+        }
+        const query = (q, slug) => safe(async () => (await post(API_URL, q, slug)).records || []);
+        async function runPool(fns, conc = CONC) {
+            const res = new Array(fns.length); let idx = 0;
+            const next = async () => { const i = idx++; if (i >= fns.length) return; res[i] = await fns[i](); await next(); };
+            await Promise.all(Array.from({ length: Math.min(conc, fns.length) }, next));
+            return res;
+        }
+
+        // ═══════════════════════════════════════════════════════════════
+        // CSV UPLOAD
+        // ═══════════════════════════════════════════════════════════════
+        function parseCsv(t) {
+            t = t.replace(/^\uFEFF/, '');
+            const rows = []; let row = [], cur = '', q = false;
+            for (let i = 0; i < t.length; i++) {
+                const c = t[i];
+                if (q) { if (c === '"') { if (t[i + 1] === '"') { cur += '"'; i++; } else q = false; } else cur += c; }
+                else if (c === '"') q = true;
+                else if (c === ',') { row.push(cur); cur = ''; }
+                else if (c === '\n' || c === '\r') { if (c === '\r' && t[i + 1] === '\n') i++; row.push(cur); cur = ''; rows.push(row); row = []; }
+                else cur += c;
+            }
+            if (cur !== '' || row.length) { row.push(cur); rows.push(row); }
+            return rows.filter(r => r.some(x => String(x).trim() !== ''));
+        }
+        const norm = s => String(s).toLowerCase().replace(/[^a-z0-9]/g, '');
+
+        function extractIds(rows) {
+            if (!rows.length) throw new Error('The file is empty.');
+            const head = rows[0].map(norm);
+            let col = -1, name = '', start = 1;
+            for (const h of ID_HEADERS) { const i = head.indexOf(norm(h)); if (i > -1) { col = i; name = rows[0][i].trim(); break; } }
+            if (col < 0) {
+                col = 0; const v = String(rows[0][0]).trim();
+                name = v || 'first column';
+                // if the first cell looks like a title (letters only) skip it, otherwise it is already an id
+                start = (/^[A-Za-z][A-Za-z _.\-]*$/.test(v) && v.length <= 30 && !/\d/.test(v)) ? 1 : 0;
+                if (start === 0) name = 'first column (no header)';
+            }
+            const seen = new Set(); let total = 0, bad = 0;
+            for (let i = start; i < rows.length; i++) {
+                const v = String(rows[i][col] ?? '').trim().replace(/^["']|["']$/g, '');
+                if (!v) continue; total++;
+                if (!/^[A-Za-z0-9_\-]+$/.test(v)) { bad++; continue; }
+                seen.add(v);
+            }
+            return { ids: [...seen], column: name, total, bad };
+        }
+
+        // ═══════════════════════════════════════════════════════════════
+        // FETCH
+        // ═══════════════════════════════════════════════════════════════
+        function leadSql(chunk) {
+            const by = (k) => `${FLD[k]}.name as ${k === 'bBy' ? 'b_by_name' : 'h_by_name'}, ${FLD[k]}.${USER_DEPT} as ${k === 'bBy' ? 'b_by_dept' : 'h_by_dept'}`;
+            return `SELECT id, name, ${FLD.psid} as psid, ${FLD.stage} as stage, ${FLD.stageUpd} as stage_upd,
+                ${FLD.bSched} as b_sched, ${FLD.hSched} as h_sched, ${FLD.bDone} as b_done, ${FLD.hDone} as h_done,
+                ${by('bBy')}, ${by('hBy')},
+                ${FLD.session}.name as session_branch
+                FROM leads_object WHERE id IN (${sq(chunk)}) LIMIT 5000 OFFSET 0`;
+        }
+        async function fetchLeads(ids, onProg) {
+            const chunks = [];
+            for (let i = 0; i < ids.length; i += CHUNK) chunks.push(ids.slice(i, i + CHUNK));
+            const out = []; let done = 0;
+            await runPool(chunks.map(ch => async () => {
+                const rows = await query(leadSql(ch), 'leads_object');
+                for (const r of rows) out.push(r);
+                done += ch.length; onProg(Math.min(done, ids.length), ids.length);
+            }));
+            return out;
+        }
+
+        // ═══════════════════════════════════════════════════════════════
+        // CLASSIFY EACH LEAD
+        // ═══════════════════════════════════════════════════════════════
+        function teamOf(name, dept) {
+            const n = name || '';
+            if (/website|aesl\s*admin/i.test(n)) return 'Website booking';
+            if (/ai\s*bot|aibot/i.test(n)) return 'AI bot';
+            return dept || 'Team not set';
+        }
+        function enrich(r) {
+            const bS = ts(r.b_sched), hS = ts(r.h_sched), bD = ts(r.b_done), hD = ts(r.h_done), su = ts(r.stage_upd);
+            const booked = (bS != null && hS != null) ? 'both' : bS != null ? 'branch' : hS != null ? 'home' : 'none';
+            // a done date is checked against its own scheduled date, or the other one if only that exists
+            const refB = bS ?? hS, refH = hS ?? bS;
+            const bOk = bD != null && refB != null && bD >= dayStart(refB);
+            const hOk = hD != null && refH != null && hD >= dayStart(refH);
+            const actual = (bOk && hOk) ? 'both' : bOk ? 'branch' : hOk ? 'home' : 'none';
+            const visited = actual !== 'none';
+            const doneAt = visited ? Math.max(...[bOk ? bD : null, hOk ? hD : null].filter(x => x != null)) : null;
+            // "due" = earliest scheduled visit is today or earlier (or the lead has already visited)
+            const firstSched = booked === 'none' ? null : Math.min(...[bS, hS].filter(x => x != null));
+            const due = booked !== 'none' && (visited || firstSched <= EOD);
+            let post = null;
+            if (visited) post = (su != null && su >= dayStart(doneAt)) ? (r.stage || 'Stage not set') : NO_UPDATE;
+            const byName = bS != null ? r.b_by_name : r.h_by_name, byDept = bS != null ? r.b_by_dept : r.h_by_dept;
+            return {
+                id: r.id, name: r.name, psid: r.psid, stage: r.stage || '', stageUpd: su,
+                bS, hS, bD, hD, booked, actual, visited, doneAt, post, due, upcoming: booked !== 'none' && !due,
+                switched: visited && booked !== 'both' && actual !== 'both' && actual !== booked,
+                admitted: visited && post === ADMISSION,
+                doneNoBooking: booked === 'none' && (bD != null || hD != null),
+                sessionBranch: r.session_branch || '', bookedBy: booked === 'none' ? '' : (byName || ''),
+                team: booked === 'none' ? '' : teamOf(byName, byDept),
+                bk: '',
+            };
+        }
+
+        // ═══════════════════════════════════════════════════════════════
+        // STATE
+        // ═══════════════════════════════════════════════════════════════
+        let ENR = [], VIEW = [], VISITED = [], META = { uploaded: 0, found: 0 };
+        let SEL = new Set(), DR = {}, drN = 0, SUMMARY = [];
+        let BR_SORT = { col: 'booked', dir: -1 };
+        let IDS = null, FILE_NAME = '';
+
+        const C = (pred, rows = VIEW) => { let n = 0; for (const r of rows) if (pred(r)) n++; return n; };
+        function drk(title, pred, rows) { const k = 'd' + (drN++); DR[k] = { title, pred, rows }; return k; }
+        function dr(n, title, pred, rows = VIEW) {
+            if (!n) return '<span class="zero">0</span>';
+            return `<button type="button" class="num" data-dr="${drk(title, pred, rows)}">${fmt(n)}</button>`;
+        }
+        function applyBasis() {
+            for (const r of ENR) r.bk = r.sessionBranch || 'Branch not set';
+        }
+
+        // ═══════════════════════════════════════════════════════════════
+        // RENDER
+        // ═══════════════════════════════════════════════════════════════
+        function renderAll() {
+            DR = {}; drN = 0; SUMMARY = [];
+            VIEW = ENR.filter(r => !SEL.size || SEL.has(r.bk));
+            VISITED = VIEW.filter(r => r.visited);
+            $('fcount').innerHTML = `Showing <b>${fmt(VIEW.length)}</b> of ${fmt(ENR.length)} leads`;
+            renderKpis(); renderWaterfall(); renderTypes(); renderMatrix(); renderStages(); renderBranches(); renderTeams();
+        }
+
+        function renderKpis() {
+            const N = VIEW.length, bk = C(r => r.booked !== 'none'), du = C(r => r.due), vi = VISITED.length, ad = C(r => r.admitted);
+            const nf = META.uploaded - META.found;
+            $('kpis').innerHTML = `
+                <div class="kpi"><div class="kl">Leads analysed</div><div class="kv">${fmt(N)}</div><div class="ks">${nf > 0 && !SEL.size ? fmt(nf) + ' uploaded ids not found' : 'in the uploaded list'}</div></div>
+                <div class="kpi"><div class="kl">Visit booking rate</div><div class="kv">${pc(bk, N)}</div><div class="ks">${fmt(bk)} of ${fmt(N)} leads booked a visit</div></div>
+                <div class="kpi"><div class="kl">Visit done rate</div><div class="kv">${pc(vi, du)}</div><div class="ks">${fmt(vi)} of ${fmt(du)} due visits done</div></div>
+                <div class="kpi"><div class="kl">Visit to admission</div><div class="kv">${pc(ad, vi)}</div><div class="ks">${fmt(ad)} of ${fmt(vi)} visited admitted</div></div>
+                <div class="kpi hero"><div class="kl">Overall conversion</div><div class="kv">${pc(ad, N)}</div><div class="ks">${fmt(ad)} admissions from ${fmt(N)} leads</div></div>`;
+            SUMMARY.push(['Funnel'], ['Step', 'Leads', 'Rate'], ['Leads analysed', N, ''], ['Visit booked', bk, pc(bk, N) + ' of analysed'], ['Visit due (scheduled till today)', du, pc(du, bk) + ' of booked'], ['Visit done', vi, pc(vi, du) + ' of due'], ['Admission', ad, pc(ad, vi) + ' of visited'], ['Overall (admission / analysed)', ad, pc(ad, N)], []);
+        }
+
+        function renderWaterfall() {
+            const N = VIEW.length, bk = C(r => r.booked !== 'none'), du = C(r => r.due), up = bk - du, vi = VISITED.length, ad = C(r => r.admitted);
+            const typeTxt = (key, f) => ['branch', 'home', 'both'].map(t => `${LBL[t].replace(' visit', '')} ${fmt(C(r => r[key] === t))}`).join(', ');
+
+            const step = (nm, sub, val, pred, trkW, rate, rateSub, cls) => `
+                <div class="step ${cls || ''}"><div class="nm">${nm}<small>${sub}</small></div>
+                <div class="vl">${cls === 'loss' ? '-' : ''}${dr(val, nm, pred)}</div>
+                <div class="trk"><i style="width:${Math.max(trkW, val ? 1.2 : 0)}%"></i></div>
+                <div class="rt"><b>${rate}</b>${rateSub}</div></div>`;
+            const w = v => N ? v / N * 100 : 0;
+            $('steps').innerHTML =
+                step('Leads analysed', 'Everyone in the uploaded list', N, () => true, 100, '100%', 'of analysed') +
+                step('Not booked', 'No visit scheduled', N - bk, r => r.booked === 'none', w(N - bk), pc(N - bk, N), 'of analysed', 'loss') +
+                step('Visit booked', typeTxt('booked'), bk, r => r.booked !== 'none', w(bk), pc(bk, N), 'of analysed') +
+                step('Not yet due', 'Visit is scheduled after today', up, r => r.upcoming, w(up), pc(up, bk), 'of booked', 'loss') +
+                step('Visit due', 'Scheduled for today or earlier', du, r => r.due, w(du), pc(du, bk), 'of booked') +
+                step('Due, not visited', 'No valid visit done date', du - vi, r => r.due && !r.visited, w(du - vi), pc(du - vi, du), 'of due', 'loss') +
+                step('Visit done', 'Visited at ' + ['branch', 'home', 'both'].map(t => `${LBL_DONE[t].toLowerCase()} ${fmt(C(r => r.actual === t))}`).join(', '), vi, r => r.visited, w(vi), pc(vi, du), 'of due') +
+                step('Visited, not admitted', 'Any stage other than Admission Done', vi - ad, r => r.visited && !r.admitted, w(vi - ad), pc(vi - ad, vi), 'of visited', 'loss') +
+                step('Admission done', 'Stage moved to Admission Done after the visit', ad, r => r.admitted, w(ad), pc(ad, vi), 'of visited');
+
+            const dn = C(r => r.doneNoBooking);
+            $('wfNote').innerHTML = dn ? `${dr(dn, 'Visit done but no visit was booked', r => r.doneNoBooking)} leads have a visit done date but no scheduled date. They are not counted as visits.` : '';
+
+            // SVG waterfall
+            const W = 940, H = 352, top = 44, base = 288, ch = base - top, cw = W / 9, bw = 72, Nn = N || 1;
+            const y = v => base - v / Nn * ch, hh = v => v / Nn * ch;
+            const part = (v, c, l, pred) => ({ v, c, l, k: v ? drk(l, pred) : '' });
+            const bookedParts = ['branch', 'home', 'both'].map(t => part(C(r => r.booked === t), COL[t], LBL[t] + ' booked', r => r.booked === t));
+            const doneParts = ['branch', 'home', 'both'].map(t => part(C(r => r.actual === t), COL[t], 'Visit done at ' + LBL_DONE[t].toLowerCase(), r => r.actual === t));
+            const stack = (x, parts) => { let b = base, s = ''; for (const p of parts) { if (!p.v) continue; const h = hh(p.v); b -= h; s += `<rect class="bar" x="${x}" y="${b}" width="${bw}" height="${h}" fill="${p.c}" data-dr="${p.k}"><title>${esc(p.l)}: ${fmt(p.v)}</title></rect>`; } return s; };
+            const cols = [
+                { n: ['Leads', 'analysed'], v: N, t: 'tot', after: N, r: 'Starting point' },
+                { n: ['Not', 'booked'], v: N - bk, t: 'drop', from: N, after: bk },
+                { n: ['Visit', 'booked'], v: bk, t: 'bk', after: bk, r: pc(bk, N) + ' of analysed' },
+                { n: ['Not yet', 'due'], v: up, t: 'drop', from: bk, after: du },
+                { n: ['Visit', 'due'], v: du, t: 'du', after: du, r: pc(du, bk) + ' of booked' },
+                { n: ['Due, not', 'visited'], v: du - vi, t: 'drop', from: du, after: vi },
+                { n: ['Visit', 'done'], v: vi, t: 'vi', after: vi, r: pc(vi, du) + ' of due' },
+                { n: ['Visited, not', 'admitted'], v: vi - ad, t: 'drop', from: vi, after: ad },
+                { n: ['Admission', 'done'], v: ad, t: 'ad', after: ad, r: pc(ad, vi) + ' of visited' },
+            ];
+            const dropPred = [null, r => r.booked === 'none', null, r => r.upcoming, null, r => r.due && !r.visited, null, r => r.visited && !r.admitted, null];
+            let g = `<line class="axis" x1="0" x2="${W}" y1="${base}" y2="${base}"/>`;
+            cols.forEach((c, i) => {
+                const x = i * cw + (cw - bw) / 2, cx = x + bw / 2;
+                let topY;
+                if (c.t === 'tot') { const k = drk('Leads analysed', () => true); g += `<rect class="bar" x="${x}" y="${y(N)}" width="${bw}" height="${hh(N)}" fill="${COL.total}" data-dr="${k}"><title>Leads analysed: ${fmt(N)}</title></rect>`; topY = y(N); }
+                else if (c.t === 'bk') { g += stack(x, bookedParts); topY = y(c.v); }
+                else if (c.t === 'du') { const k = drk('Visit due', r => r.due); g += `<rect class="bar" x="${x}" y="${y(c.v)}" width="${bw}" height="${hh(c.v)}" fill="#7fa9ad" data-dr="${k}"><title>Visit due: ${fmt(c.v)}</title></rect>`; topY = y(c.v); }
+                else if (c.t === 'vi') { g += stack(x, doneParts); topY = y(c.v); }
+                else if (c.t === 'ad') { const k = drk('Admission done', r => r.admitted); g += `<rect class="bar" x="${x}" y="${y(c.v)}" width="${bw}" height="${hh(c.v)}" fill="${COL.ok}" data-dr="${k}"><title>Admission done: ${fmt(c.v)}</title></rect>`; topY = y(c.v); }
+                else { const k = drk(c.n.join(' '), dropPred[i]); g += `<rect class="bar" x="${x}" y="${y(c.from)}" width="${bw}" height="${Math.max(hh(c.v), c.v ? 2 : 0)}" fill="${COL.drop}" data-dr="${c.v ? k : ''}"><title>${esc(c.n.join(' '))}: ${fmt(c.v)}</title></rect>`; topY = y(c.from); }
+                g += `<text class="wv ${c.t === 'drop' ? 'wn' : ''}" x="${cx}" y="${topY - 22}">${c.t === 'drop' ? '-' : ''}${fmt(c.v)}</text><text class="wp" x="${cx}" y="${topY - 8}">${c.t === 'tot' ? '100%' : pc(c.v, N) + ' of analysed'}</text>`;
+                g += `<text class="wl" x="${cx}" y="${base + 20}">${c.n[0]}</text><text class="wl" x="${cx}" y="${base + 34}">${c.n[1]}</text>`;
+                if (c.r) g += `<text class="wr" x="${cx}" y="${base + 52}">${c.r}</text>`;
+                if (i < cols.length - 1) { const nx = (i + 1) * cw + (cw - bw) / 2; g += `<line class="conn" x1="${x + bw}" x2="${nx}" y1="${y(c.after)}" y2="${y(c.after)}"/>`; }
+            });
+            $('wfSvg').innerHTML = `<div class="legend"><span><i style="background:${COL.branch}"></i>Branch</span><span><i style="background:${COL.home}"></i>Home</span><span><i style="background:${COL.both}"></i>Both</span><span><i style="background:${COL.drop}"></i>Dropped off</span><span><i style="background:${COL.ok}"></i>Admission</span></div>
+                <svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Waterfall from leads analysed to admission">${g}</svg>`;
+        }
+
+        function donut(items, sub) {
+            const tot = items.reduce((a, i) => a + i.v, 0);
+            if (!tot) return '<div class="muted">No data yet</div>';
+            const R = 54, Cc = 2 * Math.PI * R; let off = 0;
+            const arcs = items.filter(i => i.v).map(i => {
+                const len = i.v / tot * Cc, k = drk(i.l, i.pred);
+                const s = `<circle r="${R}" cx="70" cy="70" fill="none" stroke="${i.c}" stroke-width="22" stroke-dasharray="${len} ${Cc - len}" stroke-dashoffset="${-off}" transform="rotate(-90 70 70)" data-dr="${k}"><title>${esc(i.l)}: ${fmt(i.v)}</title></circle>`;
+                off += len; return s;
+            }).join('');
+            return `<svg viewBox="0 0 140 140" class="donut">${arcs}<text class="dn" x="70" y="70">${fmt(tot)}</text><text class="ds" x="70" y="85">${sub}</text></svg>
+                <div class="dl">${items.map(i => `<div><i class="dot" style="background:${i.c};margin:0"></i>${esc(i.l)} <b>${fmt(i.v)}</b> <span class="muted">${pc(i.v, tot)}</span></div>`).join('')}</div>`;
+        }
+
+        function renderTypes() {
+            const types = ['branch', 'home', 'both'];
+            $('dBooked').innerHTML = donut(types.map(t => ({ l: LBL[t], v: C(r => r.booked === t), c: COL[t], pred: r => r.booked === t })), 'booked');
+            $('dDone').innerHTML = donut(types.map(t => ({ l: LBL_DONE[t], v: C(r => r.actual === t), c: COL[t], pred: r => r.actual === t })), 'visited');
+
+            const row = t => {
+                const B = C(r => r.booked === t), D = C(r => r.booked === t && r.due), V = C(r => r.booked === t && r.visited), A = C(r => r.booked === t && r.admitted);
+                SUMMARY.push([LBL[t], B, V, pc(V, D), A, pc(A, V), pc(A, B)]);
+                return `<tr><td class="nm"><i class="dot" style="background:${COL[t]}"></i>${LBL[t]}</td><td>${dr(B, LBL[t] + ': booked', r => r.booked === t)}</td><td>${dr(V, LBL[t] + ': visited', r => r.booked === t && r.visited)}</td><td class="pct">${pc(V, D)}</td><td>${dr(A, LBL[t] + ': admitted', r => r.booked === t && r.admitted)}</td><td class="pct">${pc(A, V)}</td><td class="pct">${pc(A, B)}</td></tr>`;
+            };
+            const B = C(r => r.booked !== 'none'), Dd = C(r => r.due), V = VISITED.length, A = C(r => r.admitted);
+            SUMMARY.push(['Visit type', 'Booked', 'Visited', 'Visit rate', 'Admitted', 'Admission of visited', 'Admission of booked']);
+            $('tTypes').innerHTML = `<thead><tr><th>Booked as</th><th>Booked</th><th>Visited</th><th>Visit rate (of due)</th><th>Admitted</th><th>Admission of visited</th><th>Admission of booked</th></tr></thead><tbody>
+                <tr class="sec"><td colspan="7">One type of visit booked</td></tr>${row('branch')}${row('home')}
+                <tr class="sec"><td colspan="7">Booked for both branch and home (rare)</td></tr>${row('both')}
+                <tr class="tot"><td>All booked</td><td>${dr(B, 'All booked', r => r.booked !== 'none')}</td><td>${dr(V, 'All visited', r => r.visited)}</td><td>${pc(V, Dd)}</td><td>${dr(A, 'All admitted', r => r.admitted)}</td><td>${pc(A, V)}</td><td>${pc(A, B)}</td></tr></tbody>`;
+            SUMMARY.push(['All booked', B, V, pc(V, Dd), A, pc(A, V), pc(A, B)], []);
+        }
+
+        function renderMatrix() {
+            const rows = ['branch', 'home', 'both'], cols = ['branch', 'home', 'both', 'none'];
+            let max = 1; for (const b of rows) for (const a of cols) max = Math.max(max, C(r => r.booked === b && r.actual === a));
+            $('tMatrix').innerHTML = `<thead><tr><th>Booked as</th>${cols.map(a => `<th>${a === 'none' ? 'Not visited (incl. not yet due)' : 'Visited at ' + LBL_DONE[a].toLowerCase()}</th>`).join('')}</tr></thead><tbody>` +
+                rows.map(b => `<tr><td class="nm"><i class="dot" style="background:${COL[b]}"></i>${LBL[b]}</td>${cols.map(a => {
+                    const n = C(r => r.booked === b && r.actual === a), sw = (b === 'branch' && a === 'home') || (b === 'home' && a === 'branch');
+                    const al = n ? (0.08 + 0.3 * n / max).toFixed(2) : 0;
+                    const bg = n ? (sw ? `background:rgba(217,130,11,${al})` : a === 'none' ? '' : `background:rgba(23,82,89,${al})`) : '';
+                    return `<td style="${bg}">${dr(n, `Booked ${LBL[b].toLowerCase()}, ${a === 'none' ? 'not visited' : 'visited at ' + LBL_DONE[a].toLowerCase()}`, r => r.booked === b && r.actual === a)}${sw && n ? '<span class="tag">switched</span>' : ''}</td>`;
+                }).join('')}</tr>`).join('') + '</tbody>';
+        }
+
+        function renderStages() {
+            const V = VISITED.length;
+            const list = [...STAGES.filter(s => s !== ADMISSION), ADMISSION, NO_UPDATE].map(s => ({ s, n: C(r => r.post === s, VISITED) }));
+            const extra = {}; for (const r of VISITED) if (r.post && !list.some(x => x.s === r.post)) extra[r.post] = (extra[r.post] || 0) + 1;
+            Object.entries(extra).forEach(([s, n]) => list.splice(list.length - 1, 0, { s, n }));
+            const max = Math.max(1, ...list.map(x => x.n));
+            SUMMARY.push(['Stage after visit', 'Leads', '% of visited']);
+            list.forEach(x => SUMMARY.push([x.s, x.n, pc(x.n, V)]));
+            SUMMARY.push([]);
+            const colr = s => s === ADMISSION ? COL.ok : s === NO_UPDATE ? '#b4c0ca' : /Not-Interested|Not-Eligible/.test(s) ? '#e08a7d' : '#175259';
+            $('stageG').innerHTML = V ? list.map(x => `<div class="hb"><div class="l" title="${esc(x.s)}">${esc(x.s)}</div><div class="t"><i style="width:${x.n / max * 100}%;background:${colr(x.s)}"></i></div><div class="v">${dr(x.n, 'After visit: ' + x.s, r => r.visited && r.post === x.s)}</div></div>`).join('') : '<div class="muted">No visits yet</div>';
+            $('tStage').innerHTML = `<thead><tr><th>Stage after the visit</th><th>Leads</th><th>% of visited</th></tr></thead><tbody>` +
+                list.map(x => `<tr><td class="nm"><i class="dot" style="background:${colr(x.s)}"></i>${esc(x.s)}</td><td>${dr(x.n, 'After visit: ' + x.s, r => r.visited && r.post === x.s)}</td><td class="pct">${pc(x.n, V)}</td></tr>`).join('') +
+                `<tr class="tot"><td>All visited</td><td>${dr(V, 'All visited', r => r.visited)}</td><td>${V ? '100%' : '-'}</td></tr></tbody>`;
+            const pre = C(r => r.post === NO_UPDATE && r.stage === ADMISSION, VISITED);
+            $('stageNote').innerHTML = pre ? `${dr(pre, 'Admission Done before the visit', r => r.visited && r.post === NO_UPDATE && r.stage === ADMISSION)} visited leads were already at Admission Done before their visit date, so they are not counted as admissions from the visit.` : '';
+        }
+
+        function renderBranches() {
+            const m = new Map();
+            for (const r of VIEW) { if (!m.has(r.bk)) m.set(r.bk, []); m.get(r.bk).push(r); }
+            let rows = [...m.entries()].map(([b, rs]) => {
+                const n = rs.length, bk = C(r => r.booked !== 'none', rs), du = C(r => r.due, rs), vi = C(r => r.visited, rs), ad = C(r => r.admitted, rs);
+                return { b, rs, n, booked: bk, due: du, visited: vi, adm: ad, bkRate: n ? bk / n : 0, viRate: du ? vi / du : 0, adRate: vi ? ad / vi : 0, overall: n ? ad / n : 0 };
+            });
+            const { col, dir } = BR_SORT;
+            rows.sort((a, b) => col === 'b' ? dir * a.b.localeCompare(b.b) : dir * (a[col] - b[col]) || b.n - a.n);
+            const heads = [['b', 'Branch'], ['n', 'Analysed'], ['booked', 'Booked'], ['bkRate', 'Booking rate'], ['visited', 'Visited'], ['viRate', 'Visit rate (of due)'], ['adm', 'Admitted'], ['adRate', 'Admission of visited'], ['overall', 'Overall']];
+            $('tBranch').innerHTML = `<thead><tr>${heads.map(([k, t]) => `<th class="sort ${k === col ? 'cur' : ''}" data-sort="${k}" data-dir="${dir > 0 ? '▲' : '▼'}">${t}</th>`).join('')}</tr></thead><tbody>` +
+                rows.map(x => `<tr><td class="nm">${esc(x.b)}</td><td>${dr(x.n, x.b + ': analysed', r => r.bk === x.b)}</td><td>${dr(x.booked, x.b + ': booked', r => r.bk === x.b && r.booked !== 'none')}</td><td>${pc(x.booked, x.n)}</td><td>${dr(x.visited, x.b + ': visited', r => r.bk === x.b && r.visited)}</td><td>${pc(x.visited, x.due)}</td><td>${dr(x.adm, x.b + ': admitted', r => r.bk === x.b && r.admitted)}</td><td class="pct">${pc(x.adm, x.visited)}</td><td class="pct">${pc(x.adm, x.n)}</td></tr>`).join('') + '</tbody>';
+            SUMMARY.push(['Branch', 'Analysed', 'Booked', 'Booking rate', 'Visited', 'Visit rate', 'Admitted', 'Admission of visited', 'Overall']);
+            rows.forEach(x => SUMMARY.push([x.b, x.n, x.booked, pc(x.booked, x.n), x.visited, pc(x.visited, x.due), x.adm, pc(x.adm, x.visited), pc(x.adm, x.n)]));
+            SUMMARY.push([]);
+            const top = [...rows].sort((a, b) => b.booked - a.booked).slice(0, 12), mx = Math.max(1, ...top.map(x => x.booked));
+            $('brG').innerHTML = top.length && top[0].booked ? `<div class="legend"><span><i style="background:${COL.branch}"></i>Booked</span><span><i style="background:${COL.home}"></i>Visited</span><span><i style="background:${COL.ok}"></i>Admitted</span><span>Top 12 branches by visits booked</span></div>` +
+                top.map(x => `<div class="mini"><div class="l" title="${esc(x.b)}">${esc(x.b)}</div><div class="b">
+                    <div class="r"><span><i style="width:${x.booked / mx * 100}%;background:${COL.branch}"></i></span><em>${fmt(x.booked)}</em></div>
+                    <div class="r"><span><i style="width:${x.visited / mx * 100}%;background:${COL.home}"></i></span><em>${fmt(x.visited)}</em></div>
+                    <div class="r"><span><i style="width:${x.adm / mx * 100}%;background:${COL.ok}"></i></span><em>${fmt(x.adm)}</em></div></div></div>`).join('') : '<div class="muted">No bookings for this selection</div>';
+        }
+
+        function renderTeams() {
+            const m = new Map();
+            for (const r of VIEW) if (r.booked !== 'none') { if (!m.has(r.team)) m.set(r.team, []); m.get(r.team).push(r); }
+            const rows = [...m.entries()].map(([t, rs]) => ({ t, b: rs.length, d: C(r => r.due, rs), v: C(r => r.visited, rs), a: C(r => r.admitted, rs) })).sort((a, b) => b.b - a.b);
+            $('tTeam').innerHTML = `<thead><tr><th>Booked by team</th><th>Booked</th><th>Visited</th><th>Visit rate (of due)</th><th>Admitted</th><th>Admission of visited</th></tr></thead><tbody>` +
+                (rows.length ? rows.map(x => `<tr><td class="nm">${esc(x.t)}</td><td>${dr(x.b, x.t + ': booked', r => r.booked !== 'none' && r.team === x.t)}</td><td>${dr(x.v, x.t + ': visited', r => r.visited && r.team === x.t)}</td><td>${pc(x.v, x.d)}</td><td>${dr(x.a, x.t + ': admitted', r => r.admitted && r.team === x.t)}</td><td class="pct">${pc(x.a, x.v)}</td></tr>`).join('') : '<tr><td colspan="6" class="muted">No bookings for this selection</td></tr>') + '</tbody>';
+            SUMMARY.push(['Booked by team', 'Booked', 'Visited', 'Visit rate', 'Admitted', 'Admission of visited']);
+            rows.forEach(x => SUMMARY.push([x.t, x.b, x.v, pc(x.v, x.d), x.a, pc(x.a, x.v)]));
+        }
+
+        // ═══════════════════════════════════════════════════════════════
+        // DRILL-DOWN DRAWER
+        // ═══════════════════════════════════════════════════════════════
+        let DRILL = { title: '', rows: [], filtered: [], page: 0 };
+        const DCOLS = ['Lead', 'PSID', 'Booked as', 'Visit scheduled', 'Booked for branch', 'Booked by', 'Booked by team', 'Visit done', 'Stage now', 'Stage updated on', 'Stage after visit'];
+        const chip = t => `<span class="chip ${t}">${LBL[t]}</span>`;
+        const schedTxt = r => [r.bS != null ? 'Branch ' + fmtDate(r.bS) : '', r.hS != null ? 'Home ' + fmtDate(r.hS) : ''].filter(Boolean).join(', ') || '-';
+        const doneTxt = r => !r.visited ? '-' : [r.actual !== 'home' && r.bD != null ? 'Branch ' + fmtDate(r.bD) : '', r.actual !== 'branch' && r.hD != null ? 'Home ' + fmtDate(r.hD) : ''].filter(Boolean).join(', ') + (r.switched ? ' (switched)' : '');
+        const drillCells = r => [r.name || r.id, r.psid || '-', LBL[r.booked], schedTxt(r), r.sessionBranch || '-', r.bookedBy || '-', r.team || '-', doneTxt(r), r.stage || '-', fmtDate(r.stageUpd), r.post || '-'];
+
+        function openDrill(key) {
+            const d = DR[key]; if (!d) return;
+            DRILL = { title: d.title, rows: d.rows.filter(d.pred), filtered: null, page: 0 };
+            DRILL.filtered = DRILL.rows;
+            $('dTitle').textContent = d.title; $('dSearch').value = '';
+            $('scrim').classList.add('open'); $('drawer').classList.add('open'); $('drawer').setAttribute('aria-hidden', 'false');
+            renderDrill();
+        }
+        function closeDrill() { $('scrim').classList.remove('open'); $('drawer').classList.remove('open'); $('drawer').setAttribute('aria-hidden', 'true'); }
+        function renderDrill() {
+            const { filtered, page } = DRILL, start = page * PAGE, slice = filtered.slice(start, start + PAGE), pages = Math.max(1, Math.ceil(filtered.length / PAGE));
+            $('dBody').innerHTML = filtered.length ? `<table><thead><tr>${DCOLS.map(c => `<th>${c}</th>`).join('')}</tr></thead><tbody>${slice.map(r => {
+                const c = drillCells(r);
+                return `<tr><td><a href="${BASE_URL}/leads_object/records/${esc(r.id)}" target="_blank" rel="noopener">${esc(c[0])}</a></td><td>${esc(c[1])}</td><td>${r.booked === 'none' ? '<span class="chip none">Not booked</span>' : chip(r.booked)}</td><td>${esc(c[3])}</td><td>${esc(c[4])}</td><td>${esc(c[5])}</td><td>${esc(c[6])}</td><td>${r.visited ? `<span class="chip ok">${esc(c[7])}</span>` : '-'}</td><td>${esc(c[8])}</td><td>${esc(c[9])}</td><td>${esc(c[10])}</td></tr>`;
+            }).join('')}</tbody></table>` : '<div class="empty">No leads match.</div>';
+            $('dPager').innerHTML = `<button class="btn" id="dPrev" ${page === 0 ? 'disabled' : ''}>Previous</button><span>${filtered.length ? `${fmt(start + 1)} to ${fmt(Math.min(start + PAGE, filtered.length))} of ${fmt(filtered.length)}` : '0 leads'} (page ${page + 1} of ${pages})</span><button class="btn" id="dNext" ${page >= pages - 1 ? 'disabled' : ''}>Next</button>`;
+        }
+
+        // ═══════════════════════════════════════════════════════════════
+        // EXPORT
+        // ═══════════════════════════════════════════════════════════════
+        function download(lines, name) {
+            const q = v => `"${String(v ?? '').replace(/"/g, '""')}"`;
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(new Blob(['\ufeff' + lines.map(l => l.map(q).join(',')).join('\n')], { type: 'text/csv;charset=utf-8' }));
+            a.download = `${name}_${new Date().toISOString().slice(0, 10)}.csv`;
+            document.body.appendChild(a); a.click(); a.remove();
+        }
+        const leadLines = rows => [['Lead ID', ...DCOLS.map(c => c === 'Lead' ? 'Lead name' : c)], ...rows.map(r => [r.id, ...drillCells(r)])];
+
+        // ═══════════════════════════════════════════════════════════════
+        // BRANCH FILTER UI
+        // ═══════════════════════════════════════════════════════════════
+        function buildBranchList() {
+            const counts = new Map(); for (const r of ENR) counts.set(r.bk, (counts.get(r.bk) || 0) + 1);
+            const items = [...counts.entries()].sort((a, b) => a[0].localeCompare(b[0]));
+            $('msL').innerHTML = items.map(([b, n]) => `<label><input type="checkbox" value="${esc(b)}" ${SEL.has(b) ? 'checked' : ''}>${esc(b)}<span>${fmt(n)}</span></label>`).join('');
+            $('msS').value = '';
+            msLabel();
+        }
+        function msLabel() {
+            $('msT').textContent = !SEL.size ? 'All branches' : SEL.size === 1 ? [...SEL][0] : `${SEL.size} branches selected`;
+            $('msB').classList.toggle('on', SEL.size > 0);
+        }
+
+        // ═══════════════════════════════════════════════════════════════
+        // RUN
+        // ═══════════════════════════════════════════════════════════════
+        function showErr(m) { const e = $('err'); e.style.display = m ? 'block' : 'none'; e.textContent = m || ''; }
+
+        async function loadFile(f) {
+            showErr(''); $('notice').style.display = 'none';
+            try {
+                const rows = parseCsv(await f.text());
+                const x = extractIds(rows);
+                if (!x.ids.length) throw new Error('No lead ids were found in the file. Check that the first column holds the ids.');
+                IDS = x; FILE_NAME = f.name;
+                $('drop').classList.add('has');
+                $('dropTxt').innerHTML = `<b>${esc(f.name)}</b><span>${fmt(x.ids.length)} unique lead ids read from column "${esc(x.column)}". Click to choose another file.</span>`;
+                $('run').disabled = false;
+                if (x.bad) { $('notice').style.display = 'block'; $('notice').textContent = `${fmt(x.bad)} values did not look like lead ids and were skipped.`; }
+            } catch (e) { IDS = null; $('run').disabled = true; $('drop').classList.remove('has'); showErr(e.message); }
+        }
+
+        async function run() {
+            if (!IDS) return;
+            showErr('');
+            const btn = $('run'); btn.disabled = true; btn.textContent = 'Analysing...';
+            const prog = $('prog'), bar = prog.querySelector('i'), pt = $('progT');
+            prog.style.display = 'block'; pt.style.display = 'block'; bar.style.width = '0';
+            $('empty').style.display = 'none'; $('out').style.display = 'none'; $('fbar').style.display = 'none'; $('loading').style.display = 'block';
+            const t0 = performance.now();
+            try {
+                const recs = await fetchLeads(IDS.ids, (d, t) => { bar.style.width = (d / t * 100) + '%'; pt.textContent = `Fetched ${fmt(d)} of ${fmt(t)} leads`; });
+                const seen = new Set(), uniq = recs.filter(r => r.id && !seen.has(r.id) && seen.add(r.id));
+                ENR = uniq.map(enrich);
+                META = { uploaded: IDS.ids.length, found: ENR.length };
+                if (!ENR.length) throw new Error('None of the uploaded ids matched a lead. Check the id column and try again.');
+                SEL = new Set(); applyBasis(); buildBranchList();
+                $('loading').style.display = 'none'; $('out').style.display = 'block'; $('fbar').style.display = 'block';
+                ['viewSeg', 'exSum', 'exAll', 'prt'].forEach(id => $(id).style.display = '');
+                renderAll();
+                pt.textContent = `Done in ${((performance.now() - t0) / 1000).toFixed(1)}s`;
+                const nf = META.uploaded - META.found;
+                if (nf > 0) { $('notice').style.display = 'block'; $('notice').textContent = `${fmt(nf)} of ${fmt(META.uploaded)} uploaded ids were not found in Leads and are not part of these numbers.`; }
+            } catch (e) {
+                console.error(e);
+                $('loading').style.display = 'none'; $('empty').style.display = 'block';
+                showErr('Could not load the leads: ' + e.message);
+                pt.textContent = '';
+            } finally { btn.disabled = false; btn.textContent = 'Analyse leads'; setTimeout(() => { prog.style.display = 'none'; }, 800); }
+        }
+
+        // ═══════════════════════════════════════════════════════════════
+        // EVENTS
+        // ═══════════════════════════════════════════════════════════════
+        document.addEventListener('DOMContentLoaded', () => {
+            const drop = $('drop');
+            $('file').addEventListener('change', e => { if (e.target.files[0]) loadFile(e.target.files[0]); });
+            ['dragenter', 'dragover'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add('over'); }));
+            ['dragleave', 'drop'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove('over'); }));
+            drop.addEventListener('drop', e => { const f = e.dataTransfer.files[0]; if (f) loadFile(f); });
+            $('run').addEventListener('click', run);
+
+            $('viewSeg').addEventListener('click', e => {
+                const b = e.target.closest('button'); if (!b) return;
+                $('viewSeg').querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b));
+                document.body.classList.toggle('graphs', b.dataset.v === 'gr');
+            });
+
+            // branch multi-select
+            $('msB').addEventListener('click', e => { e.stopPropagation(); $('msP').classList.toggle('open'); });
+            document.addEventListener('click', e => { if (!$('ms').contains(e.target)) $('msP').classList.remove('open'); });
+            $('msL').addEventListener('change', e => { const c = e.target; if (c.checked) SEL.add(c.value); else SEL.delete(c.value); msLabel(); renderAll(); });
+            $('msS').addEventListener('input', e => { const q = e.target.value.toLowerCase(); $('msL').querySelectorAll('label').forEach(l => l.style.display = l.textContent.toLowerCase().includes(q) ? '' : 'none'); });
+            $('msAll').addEventListener('click', () => { $('msL').querySelectorAll('label').forEach(l => { if (l.style.display !== 'none') { const c = l.querySelector('input'); c.checked = true; SEL.add(c.value); } }); msLabel(); renderAll(); });
+            $('msClr').addEventListener('click', () => { SEL.clear(); $('msL').querySelectorAll('input').forEach(c => c.checked = false); msLabel(); renderAll(); });
+
+            // drill-down (numbers and chart shapes)
+            document.addEventListener('click', e => {
+                const t = e.target.closest('[data-dr]'); if (t && t.dataset.dr) { openDrill(t.dataset.dr); return; }
+                const s = e.target.closest('th[data-sort]');
+                if (s) { const k = s.dataset.sort; BR_SORT = { col: k, dir: BR_SORT.col === k ? -BR_SORT.dir : (k === 'b' ? 1 : -1) }; renderAll(); }
+                if (e.target.id === 'dPrev') { DRILL.page--; renderDrill(); }
+                if (e.target.id === 'dNext') { DRILL.page++; renderDrill(); }
+            });
+            $('scrim').addEventListener('click', closeDrill);
+            $('dClose').addEventListener('click', closeDrill);
+            document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDrill(); });
+            $('dSearch').addEventListener('input', e => {
+                const q = e.target.value.trim().toLowerCase();
+                DRILL.filtered = !q ? DRILL.rows : DRILL.rows.filter(r => drillCells(r).join(' ').toLowerCase().includes(q) || String(r.id).toLowerCase().includes(q));
+                DRILL.page = 0; renderDrill();
+            });
+            $('dExport').addEventListener('click', () => download(leadLines(DRILL.filtered), 'leads_' + DRILL.title.toLowerCase().replace(/[^a-z0-9]+/g, '_').slice(0, 40)));
+            $('exAll').addEventListener('click', () => download(leadLines(VIEW), 'visit_conversion_leads'));
+            $('exSum').addEventListener('click', () => download([['Visit and admission conversion'], ['File', FILE_NAME], ['Branch filter', SEL.size ? [...SEL].join(' | ') : 'All branches'], [], ...SUMMARY], 'visit_conversion_summary'));
+            $('prt').addEventListener('click', () => window.print());
+        });
+    </script>
+</body>
+
+</html>
