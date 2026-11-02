@@ -1,0 +1,3425 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <script>
+        window.onerror = function (m, s, l, c, e) { window.parent.postMessage({ type: 'dashboard-error', error: { message: m, source: s, line: l, stack: e?.stack } }, '*'); return false; };
+        window.addEventListener('unhandledrejection', e => { window.parent.postMessage({ type: 'dashboard-error', error: { message: 'Unhandled Promise Rejection', reason: e.reason?.message || String(e.reason) } }, '*'); });
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Integrated Lead Funnel Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f6f7f9;
+            color: #1f2937;
+            font-size: 13px;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        button,
+        input {
+            font-family: inherit;
+        }
+
+        /* ── HEADER ── */
+        .page-header {
+            padding: 16px 24px 12px;
+            border-bottom: 1px solid #eef1f4;
+            background: #fff;
+        }
+
+        .header-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            margin-bottom: 14px;
+        }
+
+        .page-title {
+            font-size: 19px;
+            font-weight: 700;
+            line-height: 1.2;
+            letter-spacing: -0.01em;
+            color: #111827;
+            align-self: center;
+        }
+
+        .page-title .sub {
+            display: block;
+            font-size: 12px;
+            font-weight: 400;
+            color: #6b7280;
+        }
+
+        .run-pill {
+            padding: 6px 14px;
+            border: 1px solid #e5e7eb;
+            border-radius: 999px;
+            font-size: 12px;
+            color: #6b7280;
+            background: #fff;
+            white-space: nowrap;
+        }
+
+        .run-pill.ran {
+            border-color: #86efac;
+            color: #166534;
+            background: #f0fdf4;
+        }
+
+        .data-status {
+            align-items: center;
+            gap: 7px;
+            font-size: 12.5px;
+            font-weight: 500;
+            color: #2563eb;
+            white-space: nowrap;
+        }
+
+        .data-status::before {
+            content: '';
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: #2563eb;
+            flex-shrink: 0;
+        }
+
+        .topbar {
+            display: flex;
+            gap: 10px 12px;
+            flex-wrap: wrap;
+            align-items: flex-end;
+        }
+
+        .main {
+            padding: 16px 24px 40px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        /* ── SECTION BOXES (colour-coded funnels) ── */
+        .box {
+            border-radius: 16px;
+            padding: 18px 20px 22px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            border: 1px solid;
+        }
+
+        .box-lead {
+            background: #e9f3f4;
+            border-color: #b9d6da;
+        }
+
+        .box-schol {
+            background: #f2edfb;
+            border-color: #d2c3f1;
+        }
+
+        .box-ribbon {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .box-pill {
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: .6px;
+            text-transform: uppercase;
+            color: #fff;
+            padding: 5px 14px;
+            border-radius: 999px;
+        }
+
+        .box-lead .box-pill {
+            background: #175259;
+        }
+
+        .box-schol .box-pill {
+            background: #6d3fc0;
+        }
+
+        .box-note {
+            font-size: 12px;
+            color: #6b7280;
+        }
+
+        .box-schol .btn-apply {
+            background: #6d3fc0;
+        }
+
+        .box-schol .btn-apply:hover {
+            background: #5a31a3;
+        }
+
+        .box-schol .fi-btn:hover {
+            border-color: #6d3fc0;
+        }
+
+        .box-schol .fi-btn.filled {
+            background: #ede7fa;
+            color: #3f2380;
+            border-color: #6d3fc0;
+        }
+
+        .box-schol .fi-btn.filled .arr {
+            color: #6d3fc0;
+        }
+
+        .box-schol .dd label input {
+            accent-color: #6d3fc0;
+        }
+
+        .box-schol .loader {
+            border-top-color: #6d3fc0;
+        }
+
+        /* ── FILTER ITEM ── */
+        .fi {
+            position: relative;
+            width: 168px;
+        }
+
+        .fi.wide {
+            width: 224px;
+        }
+
+        .fi-label {
+            font-size: 10px;
+            font-weight: 700;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            margin-bottom: 4px;
+            display: block;
+        }
+
+        .fi-label .req {
+            color: #ef4444;
+            font-size: 14px;
+        }
+
+        .fi-btn {
+            width: 100%;
+            padding: 7px 11px;
+            background: #fff;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            text-align: left;
+            cursor: pointer;
+            font-size: 13px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 6px;
+            color: #374151;
+            transition: border-color .15s, background .15s;
+        }
+
+        .fi-btn:hover {
+            border-color: #175259;
+        }
+
+        .fi-btn.filled {
+            background: #e8f1f2;
+            color: #0f3d42;
+            border-color: #175259;
+            font-weight: 500;
+        }
+
+        .fi-btn .fbt {
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .fi-btn .fbt.ph {
+            color: #9ca3af;
+        }
+
+        .fi-btn.filled .fbt.ph {
+            color: #0f3d42;
+        }
+
+        .fi-btn .arr {
+            color: #9ca3af;
+            font-size: 10px;
+            flex-shrink: 0;
+        }
+
+        .fi-btn.filled .arr {
+            color: #175259;
+        }
+
+        .fi.fi-locked {
+            opacity: .45;
+        }
+
+        .fi.fi-locked .fi-btn {
+            cursor: not-allowed;
+            background: #f3f4f6;
+        }
+
+        /* ── DROPDOWN ── */
+        .dd {
+            display: none;
+            position: absolute;
+            top: calc(100% + 4px);
+            left: 0;
+            min-width: 100%;
+            max-width: 320px;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, .12), 0 0 0 1px rgba(0, 0, 0, .05);
+            z-index: 300;
+            padding: 6px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .dd input[type=search] {
+            width: 100%;
+            padding: 6px 9px;
+            margin-bottom: 5px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 12px;
+            outline: none;
+            position: sticky;
+            top: 0;
+        }
+
+        .dd label {
+            display: flex;
+            align-items: center;
+            padding: 6px 8px;
+            cursor: pointer;
+            font-size: 13px;
+            border-radius: 6px;
+            gap: 8px;
+            color: #374151;
+        }
+
+        .dd label:hover {
+            background: #f3f4f6;
+        }
+
+        .dd label input {
+            flex-shrink: 0;
+            accent-color: #175259;
+        }
+
+        /* ── SECTION HEADS ── */
+        .sec-eyebrow {
+            font-size: 11px;
+            font-weight: 600;
+            color: #6b7280;
+            letter-spacing: .5px;
+            text-transform: uppercase;
+            margin-bottom: 3px;
+        }
+
+        .sec-title {
+            font-size: 16px;
+            font-weight: 600;
+            letter-spacing: -0.01em;
+            color: #111827;
+        }
+
+        .sec-title .tag {
+            font-size: 13px;
+            font-weight: 400;
+            color: #6b7280;
+        }
+
+        .sel-chip {
+            display: inline-block;
+            margin-top: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #3f2380;
+            background: #ede7fa;
+            border-radius: 999px;
+            padding: 3px 12px;
+        }
+
+        /* ── ACTIONS ── */
+        .actions {
+            display: flex;
+            gap: 10px;
+            align-items: flex-end;
+        }
+
+        .actions .btn-apply,
+        .actions .btn-reset {
+            align-self: flex-end;
+            height: 36px;
+        }
+
+        .btn-apply {
+            padding: 9px 24px;
+            background: #175259;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-apply:hover {
+            background: #0f3d42;
+        }
+
+        .btn-apply:disabled {
+            background: #cbd5e1;
+            cursor: not-allowed;
+        }
+
+        .btn-reset {
+            padding: 8px 16px;
+            background: #fff;
+            color: #374151;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-reset:hover {
+            background: #f3f4f6;
+        }
+
+        /* ── BANNERS ── */
+        .info-banner {
+            background: #fff;
+            border: 1px solid #cfe3e6;
+            border-radius: 8px;
+            padding: 11px 14px;
+            font-size: 13px;
+            color: #175259;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .info-banner.warn {
+            background: #fffbeb;
+            border-color: #fcd34d;
+            color: #92400e;
+        }
+
+        .error-banner {
+            background: #fef2f2;
+            border: 1px solid #fca5a5;
+            border-radius: 8px;
+            padding: 12px 16px;
+            font-size: 13px;
+            color: #991b1b;
+            display: none;
+        }
+
+        /* ── CARDS ── */
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 14px;
+        }
+
+        @media(max-width:560px) {
+            .cards {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            border-radius: 10px;
+            padding: 14px 16px;
+            min-height: 92px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: border-color .15s, box-shadow .15s;
+            cursor: pointer;
+        }
+
+        .card:hover {
+            border-color: #d1d5db;
+            box-shadow: 0 1px 3px rgba(16, 24, 40, .08);
+        }
+
+        .card-top {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+        }
+
+        .card-title {
+            font-size: 12px;
+            font-weight: 500;
+            color: #6b7280;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .card .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            flex-shrink: 0;
+            background: #94a3b8;
+        }
+
+        .card-value {
+            font-size: 26px;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            color: #111827;
+            margin-top: 6px;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .card-value.skel {
+            color: #e5e7eb;
+        }
+
+        .card.blue .dot {
+            background: #2563eb;
+        }
+
+        .card.red .dot {
+            background: #ef4444;
+        }
+
+        .card.orange .dot {
+            background: #f59e0b;
+        }
+
+        .card.deeporange .dot {
+            background: #ea580c;
+        }
+
+        .card.indigo .dot {
+            background: #6366f1;
+        }
+
+        .card.teal .dot {
+            background: #0d9488;
+        }
+
+        .card.green .dot {
+            background: #16a34a;
+        }
+
+        .card.purple .dot {
+            background: #8b5cf6;
+        }
+
+        .card.pink .dot {
+            background: #ec4899;
+        }
+
+        /* ── PROGRESS ── */
+        .progress-wrap {
+            background: #fff;
+            border-radius: 10px;
+            border: 1px solid #e5e7eb;
+            padding: 14px 18px;
+            display: none;
+        }
+
+        .progress-label {
+            font-size: 12px;
+            color: #6b7280;
+            margin-bottom: 6px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .progress-bar {
+            height: 5px;
+            background: #e5e7eb;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #175259, #2d9cad);
+            border-radius: 3px;
+            transition: width .3s;
+            width: 0%;
+        }
+
+        .progress-steps {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-top: 8px;
+        }
+
+        .progress-step {
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 10px;
+            background: #f3f4f6;
+            color: #6b7280;
+        }
+
+        .progress-step.done {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .progress-step.active {
+            background: #e0f2f4;
+            color: #175259;
+            font-weight: 600;
+        }
+
+        .progress-step.error {
+            background: #fef2f2;
+            color: #991b1b;
+        }
+
+        .loader {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #175259;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin .8s linear infinite;
+            margin: 30px auto;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* ── SECTION 1 GRID ── */
+        .s1-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 16px;
+            align-items: start;
+        }
+
+        .s1-grid.show-funnel {
+            grid-template-columns: 1fr 1fr;
+        }
+
+        @media(max-width:1100px) {
+            .s1-grid.show-funnel {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .funnel-card {
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            box-shadow: 0 2px 6px rgba(10, 9, 11, .05);
+            padding: 16px 18px;
+        }
+
+        .funnel-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 12px;
+        }
+
+        /* ── BREAKDOWN TABLES (01B / 02B) ── */
+        .report-card {
+            background: #fff;
+            border-radius: 12px;
+            border: 1px solid #e5e7eb;
+            box-shadow: 0 2px 6px rgba(10, 9, 11, .05);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .report-card-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 20px 8px;
+        }
+
+        .report-card-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #111827;
+        }
+
+        .report-card-sub {
+            font-size: 12px;
+            color: #9ca3af;
+            margin-top: 2px;
+        }
+
+        .table-wrap {
+            overflow: auto;
+            max-height: 460px;
+        }
+
+        .table-wrap table {
+            width: 100%;
+            border-collapse: collapse;
+            white-space: nowrap;
+            font-size: 13px;
+        }
+
+        .table-wrap thead th {
+            background: #f9fafa;
+            font-size: 11px;
+            font-weight: 700;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: .3px;
+            padding: 10px 12px;
+            border-bottom: 2px solid #e5e7eb;
+            border-right: 1px solid #eef1f4;
+            position: sticky;
+            top: 0;
+            z-index: 3;
+            text-align: right;
+        }
+
+        .table-wrap thead th.lbl {
+            text-align: left;
+        }
+
+        .table-wrap tbody td {
+            padding: 9px 12px;
+            border-bottom: 1px solid #f3f4f6;
+            border-right: 1px solid #f6f7f9;
+            color: #111827;
+            font-weight: 500;
+            text-align: right;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .table-wrap tbody td.lbl {
+            text-align: left;
+            max-width: 220px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .table-wrap tbody tr:hover td {
+            background: #f9fafb;
+        }
+
+        .sc1 {
+            position: sticky;
+            left: 0;
+            z-index: 2;
+            background: #fff;
+            box-shadow: 1px 0 0 #eef1f4;
+            width: 150px;
+            min-width: 150px;
+            max-width: 150px;
+        }
+
+        .sc2 {
+            position: sticky;
+            left: 150px;
+            z-index: 2;
+            background: #fff;
+            box-shadow: 2px 0 4px rgba(0, 0, 0, .05);
+            width: 180px;
+            min-width: 180px;
+            max-width: 180px;
+        }
+
+        .sc3 {
+            position: sticky;
+            left: 330px;
+            z-index: 2;
+            background: #fff;
+            box-shadow: 2px 0 4px rgba(0, 0, 0, .05);
+        }
+
+        .table-wrap thead .sc1,
+        .table-wrap thead .sc2,
+        .table-wrap thead .sc3 {
+            z-index: 4;
+            background: #f9fafa;
+        }
+
+        .table-wrap tbody tr:hover .sc1,
+        .table-wrap tbody tr:hover .sc2,
+        .table-wrap tbody tr:hover .sc3 {
+            background: #f9fafb;
+        }
+
+        .zero {
+            color: #d1d5db;
+        }
+
+        .total-row td {
+            background: #f0f9fa;
+            font-weight: 600;
+        }
+
+        .total-row .sc1,
+        .total-row .sc2,
+        .total-row .sc3 {
+            background: #e0f2f4;
+        }
+
+        .box-schol .total-row td {
+            background: #f5f1fd;
+        }
+
+        .box-schol .total-row .sc1,
+        .box-schol .total-row .sc2,
+        .box-schol .total-row .sc3 {
+            background: #e9e0fa;
+        }
+
+        .table-wrap thead th.hl {
+            background: #ede7fa;
+            color: #5a31a3;
+        }
+
+        .table-wrap tbody td.hl {
+            background: #faf7ff;
+        }
+
+        /* ── SECTION 02 PANELS + TABLES ── */
+        .s2-wrap {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        @media(max-width:1300px) {
+            .s2-wrap {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .s2-panel {
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            border-radius: 14px;
+            box-shadow: 0 2px 6px rgba(10, 9, 11, .05);
+            padding: 18px 20px;
+            min-height: 340px;
+            position: relative;
+            transition: opacity .15s;
+            min-width: 0;
+        }
+
+        .s2-panel.refreshing {
+            opacity: .55;
+            pointer-events: none;
+        }
+
+        .s2-panel.refreshing::after {
+            content: 'Updating…';
+            position: absolute;
+            top: 14px;
+            right: 16px;
+            font-size: 11px;
+            font-weight: 600;
+            color: #5a31a3;
+            background: #ede7fa;
+            border-radius: 999px;
+            padding: 3px 10px;
+        }
+
+        .panel-empty {
+            min-height: 280px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            color: #6b7280;
+            font-size: 13px;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .s2-ph {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 14px;
+            flex-wrap: wrap;
+        }
+
+        .s2-badge {
+            font-size: 14px;
+            font-weight: 600;
+            padding: 3px 10px;
+            border-radius: 6px;
+        }
+
+        .s2-badge.iacst {
+            background: #dbeafe;
+            color: #1d4ed8;
+        }
+
+        .s2-badge.anthe {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .s2-term {
+            font-size: 13px;
+            color: #9ca3af;
+        }
+
+        .s2-tblwrap {
+            overflow-x: auto;
+            margin-bottom: 16px;
+            border: 1px solid #e5e7eb;
+            border-radius: 10px;
+            background: #fff;
+        }
+
+        .s2-tbl {
+            width: 100%;
+            min-width: 560px;
+            border-collapse: collapse;
+            table-layout: fixed;
+            font-size: 12.5px;
+        }
+
+        /* header: wraps onto 2 lines, centred, one thin divider between every column */
+        .s2-tbl th {
+            position: relative;
+            background: #faf8ff;
+            font-size: 10.5px;
+            font-weight: 600;
+            color: #6b7280;
+            line-height: 1.25;
+            padding: 12px 6px 8px;
+            text-align: center;
+            vertical-align: bottom;
+            white-space: normal;
+            border-bottom: 1px solid #e5e7eb;
+            border-left: 1px solid #efeaf9;
+        }
+
+        .s2-tbl th.t {
+            text-align: left;
+            padding-left: 12px;
+            border-left: none;
+            color: #6d3fc0;
+            font-weight: 700;
+            letter-spacing: .4px;
+            text-transform: uppercase;
+        }
+
+        /* coloured accent: a short bar with gaps, not one long strip */
+        .s2-tbl th:not(.t)::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 10px;
+            right: 10px;
+            height: 3px;
+            border-radius: 0 0 3px 3px;
+            background: #cbd5e1;
+        }
+
+        .s2-tbl th:nth-child(3)::before {
+            background: #ef4444;
+        }
+
+        /* Untouched */
+        .s2-tbl th:nth-child(4)::before {
+            background: #f59e0b;
+        }
+
+        /* FU Today */
+        .s2-tbl th:nth-child(5)::before {
+            background: #ea580c;
+        }
+
+        /* FU Missed */
+        .s2-tbl th:nth-child(6)::before,
+        .s2-tbl th:nth-child(7)::before {
+            background: #0d9488;
+        }
+
+        /* callbacks */
+
+        /* body */
+        .s2-tbl td {
+            padding: 10px 6px;
+            text-align: center;
+            border-top: 1px solid #f1eef8;
+            border-left: 1px solid #f1eef8;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .s2-tbl td.rl {
+            text-align: left;
+            padding-left: 12px;
+            border-left: none;
+            font-weight: 600;
+            color: #1f2937;
+            background: #fff;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .s2-tbl td:nth-child(2) {
+            font-weight: 700;
+            background: #fcfbff;
+        }
+
+        /* Total */
+        .s2-tbl tbody tr:hover td {
+            background: #faf8ff;
+        }
+
+        .s2-tbl td.cell {
+            cursor: pointer;
+            color: #3f2380;
+            font-weight: 600;
+        }
+
+        .s2-tbl td.cell:hover {
+            background: #ede7fa;
+        }
+
+        .s2-tbl td.cell.sel {
+            background: #e4dcf8;
+            box-shadow: inset 0 0 0 2px #6d3fc0;
+        }
+
+        .s2-tbl td.zero {
+            color: #d1d5db;
+        }
+
+        .s2-tbl td.msg {
+            text-align: center;
+            color: #6b7280;
+            font-weight: 400;
+            padding: 14px;
+            border-left: none;
+        }
+
+        .s2-tbl td.msg.err {
+            color: #991b1b;
+        }
+
+        .s2-tbl tbody tr.trow td,
+        .s2-tbl tbody tr.trow:hover td {
+            background: #f1ecfc;
+            font-weight: 700;
+            border-top: 2px solid #d9cdf3;
+        }
+
+        .s2-tbl tbody tr.trow td.cell:hover {
+            background: #e4dcf8;
+        }
+
+        /* ── DRILL MODAL ── */
+        .drillable {
+            cursor: pointer;
+            color: #1e3a5f;
+            background: #eef4ff;
+            border-radius: 4px;
+        }
+
+        .drillable:hover {
+            background: #dbeafe;
+        }
+
+        .export-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 8px 16px;
+            background: #175259;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .export-btn:hover {
+            background: #0f3d42;
+        }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, .5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-box {
+            background: #fff;
+            border-radius: 12px;
+            padding: 22px;
+            width: 96vw;
+            max-width: 1100px;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, .2);
+        }
+
+        .modal-hd {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 14px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .modal-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: #175259;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 22px;
+            color: #6b7280;
+            cursor: pointer;
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+
+        .modal-close:hover {
+            background: #f3f4f6;
+        }
+
+        .modal-body {
+            flex: 1;
+            overflow: auto;
+        }
+
+        .modal-body table {
+            font-size: 12px;
+            width: 100%;
+            border-collapse: collapse;
+            white-space: nowrap;
+        }
+
+        .modal-body thead th {
+            position: sticky;
+            top: 0;
+            background: #f9fafa;
+            font-size: 11px;
+            font-weight: 700;
+            color: #6b7280;
+            text-transform: uppercase;
+            padding: 8px 10px;
+            border-bottom: 2px solid #e5e7eb;
+            border-right: 1px solid #e5e7eb;
+        }
+
+        .modal-body tbody td {
+            padding: 8px 10px;
+            border-bottom: 1px solid #f3f4f6;
+            border-right: 1px solid #f3f4f6;
+        }
+
+        .modal-body tbody tr:hover td {
+            background: #f9fafb;
+        }
+
+        .modal-body td .remarks {
+            max-width: 240px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            color: #1e3a5f;
+            cursor: pointer;
+            text-decoration: underline;
+        }
+
+        #drill-pager {
+            flex-shrink: 0;
+            border-top: 1px solid #e5e7eb;
+            padding: 10px 4px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #fff;
+        }
+
+        .s2-dirty {
+            align-items: center;
+            height: 36px;
+            gap: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #92400e;
+            white-space: nowrap;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- ═════════════ GLOBAL FILTERS (apply to both funnels) ═════════════ -->
+    <div class="page-header">
+        <div class="header-row">
+            <div class="page-title">Integrated Lead Funnel<span class="sub">Lead funnel + scholarship funnel · filters
+                    below apply to both</span></div>
+            <div style="display:flex;align-items:center;gap:12px">
+                <span class="data-status" id="data-asof" style="display:none"></span>
+                <button class="btn-reset" id="refresh-btn" style="display:none" title="Get the latest numbers now"><i
+                        class="fas fa-sync-alt"></i> Refresh dashboard</button>
+                <span class="run-pill" id="run-pill">Not yet run</span>
+            </div>
+        </div>
+        <div class="topbar" id="topbar">
+            <div class="fi" id="fi-rd"><span class="fi-label">Lead Owner RD</span><button class="fi-btn"><span
+                        class="fbt ph">All RDs</span><span class="arr">▼</span></button>
+                <div class="dd"><input type="search" placeholder="Search..."><label><input type="checkbox"
+                            class="select-all"> Select All</label></div>
+            </div>
+            <div class="fi" id="fi-rsgh"><span class="fi-label">Lead Owner RSGH</span><button class="fi-btn"><span
+                        class="fbt ph">All RSGHs</span><span class="arr">▼</span></button>
+                <div class="dd"><input type="search" placeholder="Search..."><label><input type="checkbox"
+                            class="select-all"> Select All</label></div>
+            </div>
+            <div class="fi" id="fi-branch"><span class="fi-label">Lead Owner Branch</span><button class="fi-btn"><span
+                        class="fbt ph">All Branches</span><span class="arr">▼</span></button>
+                <div class="dd"><input type="search" placeholder="Search..."><label><input type="checkbox"
+                            class="select-all"> Select All</label></div>
+            </div>
+            <div class="fi" id="fi-tl"><span class="fi-label">Lead Owner TL/Manager</span><button class="fi-btn"><span
+                        class="fbt ph">All TL/Managers</span><span class="arr">▼</span></button>
+                <div class="dd"><input type="search" placeholder="Search..."><label><input type="checkbox"
+                            class="select-all"> Select All</label></div>
+            </div>
+            <div class="fi wide" id="fi-owner"><span class="fi-label">Lead Owner</span><button class="fi-btn"><span
+                        class="fbt ph">All Owners</span><span class="arr">▼</span></button>
+                <div class="dd"><input type="search" placeholder="Search owners..."><label><input type="checkbox"
+                            class="select-all"> Select All</label></div>
+            </div>
+            <div class="fi" id="fi-datemod"><span class="fi-label">Data Modified At</span><button class="fi-btn"><span
+                        class="fbt ph">All Time</span><span class="arr">▼</span></button>
+                <div class="dd">
+                    <label><input type="radio" name="datemod" value="all" checked> All Time</label>
+                    <label><input type="radio" name="datemod" value="today"> Today</label>
+                    <label><input type="radio" name="datemod" value="yesterday"> Yesterday</label>
+                    <label><input type="radio" name="datemod" value="last7"> Last 7 Days</label>
+                    <label><input type="radio" name="datemod" value="last30"> Last 30 Days</label>
+                </div>
+            </div>
+            <div class="fi wide" id="fi-school"><span class="fi-label">School</span><button class="fi-btn"><span
+                        class="fbt ph">All Schools</span><span class="arr">▼</span></button>
+                <div class="dd"><input type="search" placeholder="Search schools..."><label><input type="checkbox"
+                            class="select-all"> Select All</label></div>
+            </div>
+            <div class="fi" id="fi-class"><span class="fi-label">Class Studying In</span><button class="fi-btn"><span
+                        class="fbt ph">All Classes</span><span class="arr">▼</span></button>
+                <div class="dd"><input type="search" placeholder="Search..."><label><input type="checkbox"
+                            class="select-all"> Select All</label></div>
+            </div>
+            <div class="fi" id="fi-qualified"><span class="fi-label">Qualified Status</span><button class="fi-btn"><span
+                        class="fbt ph">All Time</span><span class="arr">▼</span></button>
+                <div class="dd">
+                    <label><input type="radio" name="qualified" value="all" checked> All Time</label>
+                    <label><input type="radio" name="qualified" value="today"> Today</label>
+                    <label><input type="radio" name="qualified" value="yesterday"> Yesterday</label>
+                    <label><input type="radio" name="qualified" value="last7"> Last 7 Days</label>
+                    <label><input type="radio" name="qualified" value="last15"> Last 15 Days</label>
+                    <label><input type="radio" name="qualified" value="last30"> Last 30 Days</label>
+                    <label><input type="radio" name="qualified" value="last90"> Last 90 Days</label>
+                </div>
+            </div>
+            <div class="fi" id="fi-visitdone"><span class="fi-label">Visit Done Status</span><button
+                    class="fi-btn"><span class="fbt ph">All Time</span><span class="arr">▼</span></button>
+                <div class="dd">
+                    <label><input type="radio" name="visitdone" value="all" checked> All Time</label>
+                    <label><input type="radio" name="visitdone" value="today"> Today</label>
+                    <label><input type="radio" name="visitdone" value="yesterday"> Yesterday</label>
+                    <label><input type="radio" name="visitdone" value="last7"> Last 7 Days</label>
+                    <label><input type="radio" name="visitdone" value="last15"> Last 15 Days</label>
+                    <label><input type="radio" name="visitdone" value="last30"> Last 30 Days</label>
+                    <label><input type="radio" name="visitdone" value="last90"> Last 90 Days</label>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="main">
+
+        <!-- ═════════════ SECTION 01 — LEAD FUNNEL ═════════════ -->
+        <section class="box box-lead" id="box-lead">
+            <div class="box-ribbon"><span class="box-pill">Lead Funnel</span><span class="box-note">Section 01 · who is
+                    in the funnel and what needs action today</span></div>
+
+            <div>
+                <div class="sec-eyebrow">Section 01</div>
+                <div
+                    style="display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap;margin-top:2px">
+                    <div class="sec-title">Today's priority queue <span class="tag" id="s1-tag"></span></div>
+                    <div class="actions">
+                        <div class="fi" id="fi-type" style="min-width:260px">
+                            <span class="fi-label">Type of Leads <span class="req">*</span></span>
+                            <button class="fi-btn"><span class="fbt ph">Select lead type</span><span
+                                    class="arr">▼</span></button>
+                            <div class="dd">
+                                <label><input type="radio" name="type" value="anthe27_plus"> ANTHE+AKTHE 27 Test Taker
+                                    60+</label>
+                                <label><input type="radio" name="type" value="anthe27_minus"> ANTHE+AKTHE 27 Test Taker
+                                    60−</label>
+                                <label><input type="radio" name="type" value="anthe27_all"> ANTHE+AKTHE AY27 Test Takers
+                                    (All)</label>
+                                <label><input type="radio" name="type" value="anthe27_nottaken"> ANTHE+AKTHE 27
+                                    Registered but
+                                    Test Not Taken</label>
+                                <label><input type="radio" name="type" value="ice27"> ICE 27</label>
+                                <label><input type="radio" name="type" value="ay27" checked> AY 27 Leads</label>
+                                <label><input type="radio" name="type" value="wa_callback"> WhatsApp Callback</label>
+                                <label><input type="radio" name="type" value="iacst27_taken"> IACST 27 Test
+                                    Takers</label>
+                                <label><input type="radio" name="type" value="iacst27_nottaken"> IACST 27 Registered but
+                                    Test Not Taken</label>
+                            </div>
+                        </div>
+                        <button class="btn-reset" id="reset-btn"><i class="fas fa-undo"></i> Reset</button>
+                        <button class="btn-apply" id="apply-btn" disabled><i class="fas fa-play"></i> Apply &amp;
+                            Run</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="info-banner" class="info-banner"><i class="fas fa-info-circle"></i> Pick a Type of Leads and at
+                least one filter, then Apply &amp; Run.</div>
+            <div id="error-banner" class="error-banner"></div>
+
+            <div class="progress-wrap" id="progress-wrap">
+                <div class="progress-label"><span id="progress-text">Loading…</span><span id="progress-pct">0%</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progress-fill"></div>
+                </div>
+                <div class="progress-steps" id="progress-steps"></div>
+            </div>
+
+            <div class="s1-grid" id="s1-grid">
+                <div class="cards" id="cards"></div>
+                <div class="funnel-card" id="funnel-card" style="display:none">
+                    <div class="funnel-title">Lead Stage Funnel</div>
+                    <div class="funnel" id="funnel"></div>
+                </div>
+            </div>
+
+            <!-- Section 01B -->
+            <div id="breakdown-head" style="display:none">
+                <div class="sec-eyebrow">Section 01B</div>
+                <div class="sec-title" id="breakdown-toggle"
+                    style="cursor:pointer;display:flex;align-items:center;gap:10px">
+                    Breakdown by RSGH, branch &amp; owner
+                    <i class="fas fa-chevron-down" id="breakdown-chevron"
+                        style="font-size:14px;color:#6b7280;transition:transform .2s"></i>
+                </div>
+            </div>
+            <div id="breakdown-body" style="display:none;flex-direction:column;gap:20px">
+                <div class="report-card">
+                    <div class="report-card-head">
+                        <div>
+                            <div class="report-card-title">By Branch</div>
+                            <div class="report-card-sub">Grouped by RSGH → Branch</div>
+                        </div>
+                    </div>
+                    <div class="panel-empty" id="branch-slot" style="display:none">
+                        <div>Click below to load this table — large selections can take up to 2 minutes.</div>
+                        <button class="btn-apply" id="load-breakdown-btn"><i class="fas fa-table"></i> Load
+                            data</button>
+                    </div>
+                    <div class="loader" id="branch-loader" style="display:none"></div>
+                    <div class="table-wrap">
+                        <table id="branch-table"></table>
+                    </div>
+                </div>
+                <div class="report-card">
+                    <div class="report-card-head">
+                        <div>
+                            <div class="report-card-title">By User</div>
+                            <div class="report-card-sub">Grouped by RSGH → Branch → Owner</div>
+                        </div>
+                    </div>
+                    <div class="panel-empty" id="user-slot" style="display:none">
+                        <div>Loads along with the “By Branch” table above.</div>
+                    </div>
+                    <div class="loader" id="user-loader" style="display:none"></div>
+                    <div class="table-wrap">
+                        <table id="user-table"></table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ═════════════ SECTION 02 — SCHOLARSHIP FUNNEL ═════════════ -->
+        <section class="box box-schol" id="box-schol" style="display:none">
+            <div class="box-ribbon"><span class="box-pill">Scholarship Funnel</span><span class="box-note">Section 02 ·
+                    IACST Term 2728 + ANTHE/AKTHE Term 2627</span></div>
+
+            <div>
+                <div class="sec-eyebrow">Section 02</div>
+                <div class="sec-title" id="s2-toggle" title="Expand / collapse"
+                    style="cursor:pointer;display:flex;align-items:center;gap:10px">
+                    Scholarship funnel <span class="tag">(IACST · 2728 + ANTHE/AKTHE · 2627)</span>
+                    <i class="fas fa-chevron-down" id="s2-chevron"
+                        style="font-size:14px;color:#6b7280;transition:transform .2s"></i>
+                </div>
+            </div>
+
+            <div class="topbar" id="s2-filters">
+                <div class="fi" id="fi-s2type"><span class="fi-label">Type</span><button class="fi-btn"><span
+                            class="fbt">Test Taken</span><span class="arr">▼</span></button>
+                    <div class="dd">
+                        <label><input type="radio" name="s2type" value="taken" checked> Test Taken</label>
+                        <label><input type="radio" name="s2type" value="registered"> Only Registered</label>
+                        <label><input type="radio" name="s2type" value="overall"> Overall</label>
+                    </div>
+                </div>
+                <div class="fi wide" id="fi-s2branch"><span class="fi-label">Branch (Scholarship)</span><button
+                        class="fi-btn"><span class="fbt ph">All Branches</span><span class="arr">▼</span></button>
+                    <div class="dd"><input type="search" placeholder="Search branches..."><label><input type="checkbox"
+                                class="select-all"> Select All</label></div>
+                </div>
+                <div class="fi" id="fi-schrange"><span class="fi-label">Scholarship Range</span><button
+                        class="fi-btn"><span class="fbt ph">All Scholarship</span><span class="arr">▼</span></button>
+                    <div class="dd">
+                        <label><input type="radio" name="schrange" value="all" checked> All Scholarship</label>
+                        <label><input type="radio" name="schrange" value="zero"> 0%</label>
+                        <label><input type="radio" name="schrange" value="0to10"> &gt;0% – 10%</label>
+                        <label><input type="radio" name="schrange" value="10to20"> &gt;10% – 20%</label>
+                        <label><input type="radio" name="schrange" value="20to30"> &gt;20% – 30%</label>
+                        <label><input type="radio" name="schrange" value="30to40"> &gt;30% – 40%</label>
+                        <label><input type="radio" name="schrange" value="40to50"> &gt;40% – 50%</label>
+                        <label><input type="radio" name="schrange" value="50to60"> &gt;50% – 60%</label>
+                        <label><input type="radio" name="schrange" value="60to70"> &gt;60% – 70%</label>
+                        <label><input type="radio" name="schrange" value="70to80"> &gt;70% – 80%</label>
+                        <label><input type="radio" name="schrange" value="80to90"> &gt;80% – 90%</label>
+                        <label><input type="radio" name="schrange" value="gte90"> 90%+</label>
+                    </div>
+                </div>
+                <div class="fi" id="fi-appeared"><span class="fi-label">Appeared Date</span><button class="fi-btn"><span
+                            class="fbt ph">All Time</span><span class="arr">▼</span></button>
+                    <div class="dd">
+                        <label><input type="radio" name="appeared" value="all" checked> All Time</label>
+                        <label><input type="radio" name="appeared" value="today"> Today</label>
+                        <label><input type="radio" name="appeared" value="yesterday"> Yesterday</label>
+                        <label><input type="radio" name="appeared" value="last7"> Last 7 Days</label>
+                        <label><input type="radio" name="appeared" value="last15"> Last 15 Days</label>
+                        <label><input type="radio" name="appeared" value="last30"> Last 30 Days</label>
+                    </div>
+                </div>
+                <div class="fi" id="fi-origin"><span class="fi-label">Origin</span><button class="fi-btn"><span
+                            class="fbt ph">All Origins</span><span class="arr">▼</span></button>
+                    <div class="dd">
+                        <label><input type="checkbox" class="select-all"> Select All</label>
+                        <label><input type="checkbox" value="API" data-name="Digital (API)"> Digital (API)</label>
+                        <label><input type="checkbox" value="Forms" data-name="Form"> Form</label>
+                        <label><input type="checkbox" value="Upload" data-name="Upload"> Upload</label>
+                    </div>
+                </div>
+                <div class="fi" id="fi-s2class"><span class="fi-label">Class Studying In</span><button
+                        class="fi-btn"><span class="fbt ph">All Classes</span><span class="arr">▼</span></button>
+                    <div class="dd"><input type="search" placeholder="Search..."><label><input type="checkbox"
+                                class="select-all"> Select All</label></div>
+                </div>
+                <div class="fi" id="fi-s2qual"><span class="fi-label">Qualified Status</span><button
+                        class="fi-btn"><span class="fbt ph">All Time</span><span class="arr">▼</span></button>
+                    <div class="dd">
+                        <label><input type="radio" name="s2qual" value="all" checked> All Time</label>
+                        <label><input type="radio" name="s2qual" value="today"> Today</label>
+                        <label><input type="radio" name="s2qual" value="yesterday"> Yesterday</label>
+                        <label><input type="radio" name="s2qual" value="last7"> Last 7 Days</label>
+                        <label><input type="radio" name="s2qual" value="last15"> Last 15 Days</label>
+                        <label><input type="radio" name="s2qual" value="last30"> Last 30 Days</label>
+                        <label><input type="radio" name="s2qual" value="last90"> Last 90 Days</label>
+                    </div>
+                </div>
+                <div class="fi" id="fi-s2visit"><span class="fi-label">Visit Done Status</span><button
+                        class="fi-btn"><span class="fbt ph">All Time</span><span class="arr">▼</span></button>
+                    <div class="dd">
+                        <label><input type="radio" name="s2visit" value="all" checked> All Time</label>
+                        <label><input type="radio" name="s2visit" value="today"> Today</label>
+                        <label><input type="radio" name="s2visit" value="yesterday"> Yesterday</label>
+                        <label><input type="radio" name="s2visit" value="last7"> Last 7 Days</label>
+                        <label><input type="radio" name="s2visit" value="last15"> Last 15 Days</label>
+                        <label><input type="radio" name="s2visit" value="last30"> Last 30 Days</label>
+                        <label><input type="radio" name="s2visit" value="last90"> Last 90 Days</label>
+                    </div>
+                </div>
+                <div class="fi wide" id="fi-s2school"><span class="fi-label">School</span><button class="fi-btn"><span
+                            class="fbt ph">All Schools</span><span class="arr">▼</span></button>
+                    <div class="dd"><input type="search" placeholder="Search schools..."><label><input type="checkbox"
+                                class="select-all"> Select All</label></div>
+                </div>
+                <div class="fi" id="fi-s2stage"><span class="fi-label">Stage</span><button class="fi-btn"><span
+                            class="fbt ph">All Stages</span><span class="arr">▼</span></button>
+                    <div class="dd">
+                        <label><input type="checkbox" class="select-all"> Select All</label>
+                        <label><input type="checkbox" value="untouched" data-name="Untouched"> Untouched</label>
+                        <label><input type="checkbox" value="ncb" data-name="NC / Call Back"> NC / Call Back</label>
+                        <label><input type="checkbox" value="qualified" data-name="Qualified"> Qualified</label>
+                        <label><input type="checkbox" value="junk" data-name="Junk / NI"> Junk / NI</label>
+                        <label><input type="checkbox" value="admission" data-name="Admission Done"> Admission
+                            Done</label>
+                    </div>
+                </div>
+                <div class="actions">
+                    <button class="btn-apply" id="s2-apply-btn"><i class="fas fa-play"></i> Apply</button>
+                    <span class="s2-dirty" id="s2-dirty" style="display:none"><i class="fas fa-circle-exclamation"></i>
+                        Filters changed — click Apply</span>
+                </div>
+            </div>
+
+            <div class="s2-wrap" id="s2-wrap">
+                <div class="s2-panel" id="panel-iacst"></div>
+                <div class="s2-panel" id="panel-anthe"></div>
+            </div>
+
+            <!-- Section 02B -->
+            <div id="s2b-head" style="display:none">
+                <div class="sec-eyebrow">Section 02b</div>
+                <div class="sec-title" id="s2b-toggle" style="cursor:pointer;display:flex;align-items:center;gap:10px">
+                    Section 02b: Breakdown by RSGH, Branch and Owner
+                    <i class="fas fa-chevron-down" id="s2b-chevron"
+                        style="font-size:14px;color:#6b7280;transition:transform .2s"></i>
+                </div>
+                <div class="sel-chip" id="s2b-sel"></div>
+            </div>
+            <div id="s2b-body" style="display:none;flex-direction:column;gap:20px">
+                <div class="error-banner" id="s2b-err"></div>
+                <div class="report-card">
+                    <div class="report-card-head">
+                        <div>
+                            <div class="report-card-title">By Branch</div>
+                            <div class="report-card-sub">Grouped by RSGH → Branch (lead owner's branch)</div>
+                        </div>
+                    </div>
+                    <div class="loader" id="s2b-branch-loader" style="display:none"></div>
+                    <div class="table-wrap">
+                        <table id="s2b-branch-table"></table>
+                    </div>
+                </div>
+                <div class="report-card">
+                    <div class="report-card-head">
+                        <div>
+                            <div class="report-card-title">By User</div>
+                            <div class="report-card-sub">Grouped by RSGH → Branch → Owner</div>
+                        </div>
+                    </div>
+                    <div class="loader" id="s2b-user-loader" style="display:none"></div>
+                    <div class="table-wrap">
+                        <table id="s2b-user-table"></table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ═════════════ MODALS ═════════════ -->
+        <div class="modal-overlay" id="modal">
+            <div class="modal-box">
+                <div class="modal-hd">
+                    <div class="modal-title" id="modal-title">Lead Details</div>
+                    <div style="display:flex;gap:8px;align-items:center">
+                        <button class="export-btn" id="modal-export"><i class="fas fa-download"></i> Export</button>
+                        <button class="modal-close" id="modal-close">×</button>
+                    </div>
+                </div>
+                <div class="modal-body">
+                    <div id="modal-body-content"></div>
+                </div>
+                <div id="drill-pager" style="display:none"></div>
+            </div>
+        </div>
+
+        <div class="modal-overlay" id="remarks-modal">
+            <div class="modal-box" style="max-width:640px">
+                <div class="modal-hd">
+                    <div class="modal-title">Overall Remarks</div><button class="modal-close"
+                        id="remarks-close">×</button>
+                </div>
+                <div class="modal-body">
+                    <div id="remarks-content" style="white-space:normal;line-height:1.6;font-size:13px;color:#374151">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ═══════════════════════════════════════════════════════════════
+        // CONFIG
+        // ═══════════════════════════════════════════════════════════════
+        const BASE_URL = 'https://aakash.superleap.com';
+        const API_URL = BASE_URL + '/api/v1/reports/execute';
+        const COUNT_URL = BASE_URL + '/api/v1/reports/count';
+        const token = new URLSearchParams(window.location.search).get('token');
+
+        const IST = 5.5 * 60 * 60 * 1000;
+        const _loadedSchoolNames = new Set();
+
+        function istDayStart(daysAgo = 0) {
+            const d = new Date(Date.now() + IST);
+            d.setUTCHours(0, 0, 0, 0);
+            d.setUTCDate(d.getUTCDate() - daysAgo);
+            return d.getTime() - IST;
+        }
+        function istDayEnd(daysAgo = 0) { return istDayStart(daysAgo) + 24 * 60 * 60 * 1000 - 1; }
+        const istEpoch = (y, m, d) => Date.UTC(y, m - 1, d) - IST;
+
+        const DATES = {
+            TODAY_S: istDayStart(0), TODAY_E: istDayEnd(0), L15_S: istDayStart(15), WA_CB_FROM: istEpoch(2026, 10, 1),
+            TOM_S: istDayStart(-1), TOM_E: istDayEnd(-1),       // tomorrow (a negative offset moves forward)
+            AI_S: istDayStart(14),                              // last 15 days incl. today (same as the "Last 15 Days" filter)
+        };
+
+        const VISIT_WIN = { visitToday: [DATES.TODAY_S, DATES.TODAY_E], visitTomorrow: [DATES.TOM_S, DATES.TOM_E] };
+
+        const LEAD_AI_QUALIFIED = 'ai_qualified_date_and_time';
+        const LEAD_HOME_VISIT_BOOK = 'home_visit_scheduled_date_time';
+        const LEAD_BRANCH_VISIT_BOOK = 'branch_visit_scheduled_for_date_time';
+        const LEAD_HOME_BOOKED_BY = 'home_visit_booked_by';
+        const LEAD_BRANCH_BOOKED_BY = 'branch_visit_booked_by';
+        const USER_DEPT_FIELD = 'new_department';   // ⚠ confirm the API name of the user's "New Department" field
+
+        // ── TERM / LEVEL IDS ─────────────────────────────────────────
+        // id = null → the query falls back to the slower `AESL_Level__c.name = '<term>'` join.
+        // ⚠ TODO: paste the real level-record IDs for 2728–2731 to get the fast path (≈5x faster).
+        const LEVELS = {
+            '2526': { id: 'a1ONo0000001U2TMAU' },
+            '2627': { id: 'a1ONo00000022XBMAY' },
+            '2628': { id: 'a1ONo00000023xtMAA' },
+            '2629': { id: 'a1ONo00000023zVMAQ' },
+            '2630': { id: 'a1ONo0000002417MAA' },
+            '2728': { id: 't98xyD_uchLpt2P' },
+            '2729': { id: 't98xyD_37BgKllo' },
+            '2730': { id: 't98xyD_LBZbAOox' },
+            '2731': { id: 't98xyD_ZcYfqiJ6' },
+        };
+        function levelPred(col, term) { const id = LEVELS[term].id; return id ? `${col} = '${id}'` : `${col}.name = '${term}'`; }
+        function levelIn(col, terms) {
+            return terms.every(t => LEVELS[t].id)
+                ? `${col} IN (${sq(terms.map(t => LEVELS[t].id))})`
+                : `${col}.name IN (${sq(terms)})`;
+        }
+
+        // ── AY27 DEFINITION (⚠ confirm with business — mirrors the AY26 rules shifted one year) ──
+        const AY = {
+            iacstTerm: '2728',
+            antheTerm: '2627',
+            iatTerm: '2627', iatExamFrom: istEpoch(2026, 7, 1),
+            productTerms: ['2728', '2729', '2730', '2731'],
+            newLeadFrom: istEpoch(2026, 10, 1),
+        };
+
+        const ANTHE_TYPES = ['ANTHE', 'AKTHE'];   // ANTHE logic now covers both exam types
+        const typePred = (col, types) => types.length === 1 ? `${col} = '${types[0]}'` : `${col} IN (${sq(types)})`;
+        const rollOk = col => `${col} IS NOT NULL AND ${col} <> ''`;
+
+        const ICE_CRP_VALUES = ['CRP 2728', 'CRP AY27: Topper'];   // ⚠ confirm these are the "ICE 27" values
+
+        // ── Section 02 school category (⚠ TODO confirm field + value; the table shows an error row if the field is wrong) ──
+        const SCHOOL_CAT_FIELD = 'AESL_School_Name__c.School_Category_Branch';
+        const SCHOOL_CAT_A = 'A';
+
+        const SCHOL_EXAM_DATE = 'AESL_Date_of_Exam__c';
+        const LEAD_PRIMARY_MOBILE = 'AESL_Primary_Mobile_Number__c';
+
+        // Relationship / object names
+        const REL_SCHOL = 'associated_scholarships';
+        const REL_PRODUCT = 'associated_products';
+        const SCHOL_OBJECT = 'scholarship_object';
+        const PRODUCT_OBJECT = 'product_object';
+        const REL_SCHOL_LEAD = 'associated_lead';
+        const REL_PROD_LEAD = 'associated_lead';
+        const RESULT_OBJECT = 'aesl_anthe_result_2018__c';
+        const REL_RESULT_SCHOL = 'associated_scholarship_opp';
+        const RESULT_ELIGIBLE = 'AESL_Eligible_Scholarship__c';
+        // Optional fast path: climb from the result table when the result `Type__c` value is known.
+        // null = use scholarship_object (always correct, matches drill-down definition).
+        const RESULT_TYPES = { iacst27: null, anthe27: null };   // e.g. { iacst27: 'IACST 2027', anthe27: 'ANTHE 2026' }
+
+        const LEAD_NEXT_FU_MODE = 'next_follow_up_mode';
+        const LEAD_OVERALL_REMARKS = 'overall_remarks';
+        const LEAD_HOME_VISIT_DONE = 'home_visit_done_date';
+        const SCHOL_ROLL_NUMBER = 'AESL_Roll_No__c';
+        const DRILL_PAGE = 100;
+
+        const TYPE_TAGS = {
+            anthe27_plus: 'ANTHE + AKTHE · Term 2627 · 60%+',
+            anthe27_minus: 'ANTHE + AKTHE · Term 2627 · <60%',
+            anthe27_all: 'ANTHE + AKTHE · Term 2627 · All test takers (60%+ and <60%)',
+            anthe27_nottaken: 'ANTHE + AKTHE · Term 2627 · Registered, Test Not Taken',
+            ice27: 'ICE 27 · CRP 2728 / AY27 Topper',
+            ay27: 'AY27 · All Leads',
+            wa_callback: 'WhatsApp Callback · from 1 Oct 2026 to today',
+            iacst27_taken: 'IACST · Term 2728 · Test Taken',
+            iacst27_nottaken: 'IACST · Term 2728 · Registered, Test Not Taken',
+
+        };
+
+        // Scholarship-based lead types. elig: notnull | null | gte60 | lt60
+        const SCHOL_COHORTS = {
+            iacst27_taken: { lt: ['iACST'], term: AY.iacstTerm, elig: 'notnull', rKey: 'iacst27' },
+            iacst27_nottaken: { lt: ['iACST'], term: AY.iacstTerm, elig: 'null' },
+            anthe27_plus: { lt: ANTHE_TYPES, term: AY.antheTerm, elig: 'gte60', rKey: 'anthe27', needRoll: true },
+            anthe27_minus: { lt: ANTHE_TYPES, term: AY.antheTerm, elig: 'lt60', rKey: 'anthe27', needRoll: true },
+            anthe27_all: { lt: ANTHE_TYPES, term: AY.antheTerm, elig: 'notnull', rKey: 'anthe27', needRoll: true },
+            anthe27_nottaken: { lt: ANTHE_TYPES, term: AY.antheTerm, elig: 'null', needRoll: true },
+        };
+        // Cached-count first load ("5,00,000+") for these; the rest compute exact numbers directly.
+        const HEAVY_TYPES = new Set(['ay27', 'ice27', 'iacst27_nottaken', 'anthe27_minus', 'anthe27_nottaken', 'anthe27_all', 'wa_callback']);
+        const COUNT_CAP = 500000;
+        const CAP_LABEL = '5,00,000+';
+
+        // ═══════════════════════════════════════════════════════════════
+        // EXPORT
+        // ═══════════════════════════════════════════════════════════════
+        const CLIENT_ID = 'superleapweb';
+        const CLIENT_SECRET = 'UEAlm1PWab8VXB5b';   // ⚠ secret shipped to the browser — move behind a proxy if possible
+        const EXPORT_QUERY_URL = BASE_URL + '/api/v1/org/objects/export/query';
+        const EXPORT_STATUS_URL = BASE_URL + '/api/v1/org/objects/leads_object/export_status';
+
+        async function exportViaApi(sql, filename) {
+            const hdr = { 'Authorization': `Bearer ${token}`, 'client-id': CLIENT_ID, 'client-secret': CLIENT_SECRET };
+            const submit = await fetch(EXPORT_QUERY_URL, { method: 'POST', headers: { 'Content-Type': 'application/json', ...hdr }, body: JSON.stringify({ query: sql, type: 'csv', slug: 'leads_object' }) });
+            if (!submit.ok) throw new Error(`Export submit HTTP ${submit.status}: ${await submit.text()}`);
+            const sj = await submit.json();
+            if (!sj.success) throw new Error(sj.data?.message || 'Export submit failed');
+            const jobToken = sj.data?.token;
+            if (!jobToken) throw new Error('No export job token returned');
+            let url = null;
+            for (let i = 0; i < 150; i++) {
+                await sleep(2000);
+                const st = await fetch(`${EXPORT_STATUS_URL}?token=${encodeURIComponent(jobToken)}`, { headers: hdr });
+                if (!st.ok) throw new Error(`Export status HTTP ${st.status}: ${await st.text()}`);
+                const d = (await st.json()).data || {};
+                if (d.status === 'completed') { url = d.url; break; }
+                if (d.status === 'failed' || d.status === 'error') throw new Error('Export job failed server-side');
+            }
+            if (!url) throw new Error('Export timed out (still pending)');
+            const a = document.createElement('a');
+            a.href = url; a.download = `${filename}_${Date.now()}.csv`;
+            document.body.appendChild(a); a.click(); a.remove();
+        }
+        function selectList(cols) { return cols.map(([expr, alias]) => `${expr} as "${alias}"`).join(', '); }
+
+        const S1_EXPORT_COLS = [
+            ['id', 'Lead ID'], ['name', 'Lead Name'], ['AESL_PS_ID__c', 'PSID'], ['stage', 'Stage'],
+            ['AESL_Next_Follow_up_date__c', 'Next Follow Up'], ['next_follow_up_mode', 'Next FU Mode'],
+            ['AESL_Class_Studying_In__c', 'Class Studying In'], ['AESL_School_Name__c.name', 'School Name'],
+            ['AESL_Branch_LK__c.name', 'Latest Branch'], ['AESL_Course_LK__c.name', 'Latest Course'],
+            ['overall_remarks', 'Overall Remarks'],
+            ['branch_visit_scheduled_for_date_time', 'Branch Visit Book'], ['branch_visit_done_date', 'Branch Visit Done'],
+            ['home_visit_scheduled_date_time', 'Home Visit Book'], ['home_visit_done_date', 'Home Visit Done'],
+            ['owner.name', 'Owner'], ['owner.team_supervisor', 'TL/Supervisor'], ['owner.team_sales_head', 'RSGH'],
+        ];
+        const S2_EXPORT_COLS = [
+            ['id', 'Lead ID'],
+            ['name', 'Lead Name'], ['AESL_PS_ID__c', 'PSID'], ['stage', 'Stage'],
+            ['AESL_Next_Follow_up_date__c', 'Next Follow Up'], ['next_follow_up_mode', 'Next FU Mode'],
+            [`${REL_SCHOL}.AESL_Roll_No__c`, 'Roll Number'], [`${REL_SCHOL}.superleap_origin`, 'Origin'],
+            [`${REL_SCHOL}.AESL_Exam_Mode__c`, 'Mode'], [`${REL_SCHOL}.created_at`, 'Scholarship Created'],
+            [`${REL_SCHOL}.AESL_Lead_Type__c`, 'Exam Type'], [`${REL_SCHOL}.AESL_Branch_LK_c.name`, 'Branch'],
+            [`${REL_SCHOL}.AESL_Class_Studying_In__c`, 'Class Studying In'], ['AESL_School_Name__c.name', 'School Name'],
+            [`${REL_SCHOL}.AESL_Level__c.name`, 'Term'],
+            [`${REL_SCHOL}.associated_result.AESL_Date_of_Exam__c`, 'Appear Date'],
+            [`${REL_SCHOL}.associated_result.AESL_Eligible_Scholarship__c`, 'Scholarship %'],
+            ['overall_remarks', 'Remarks'],
+            ['owner.name', 'Owner'], ['owner.team_supervisor', 'TL/Supervisor'], ['owner.team_sales_head', 'RSGH'],
+        ];
+        // function buildExportSql(ctx, kind) {
+        //     // return `SELECT ${selectList(kind === 'schol' ? S2_EXPORT_COLS : S1_EXPORT_COLS)} FROM leads_object WHERE ${ctx.exportWhere} ORDER BY id ASC`;
+        //     // S1_EXPORT_COLS: add as the first entry
+        //     return `SELECT ${kind === 'schol' ? '' : 'DISTINCT '}${selectList(kind === 'schol' ? S2_EXPORT_COLS : S1_EXPORT_COLS)} FROM leads_object WHERE ${ctx.exportWhere} ORDER BY id ASC`;
+        // }
+
+        // function buildExportSql(ctx, kind) {
+        //     return `SELECT DISTINCT ${selectList(kind === 'schol' ? S2_EXPORT_COLS : S1_EXPORT_COLS)} FROM leads_object WHERE ${ctx.exportWhere} ORDER BY id ASC`;
+        // }
+
+        function buildExportSql(ctx, kind) {
+            if (kind === 'schol') {
+                return `SELECT DISTINCT ON (id) ${selectList(S2_EXPORT_COLS)} FROM leads_object WHERE ${ctx.exportWhere} ORDER BY id ASC, ${REL_SCHOL}.created_at DESC`;
+            }
+            return `SELECT DISTINCT ${selectList(S1_EXPORT_COLS)} FROM leads_object WHERE ${ctx.exportWhere} ORDER BY id ASC`;
+        }
+
+        // ═══════════════════════════════════════════════════════════════
+        // GENERIC HELPERS
+        // ═══════════════════════════════════════════════════════════════
+        function fmtDate(e) { if (!e) return '—'; return new Date(Number(e)).toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata', day: '2-digit', month: 'short', year: '2-digit' }); }
+        function escapeHtml(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+        const fmtN = n => (Number(n) || 0).toLocaleString('en-IN');
+        function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+        async function runPool(fns, conc = 4) {
+            const res = new Array(fns.length); let idx = 0;
+            async function next() { const i = idx++; if (i >= fns.length) return; res[i] = await fns[i](); await next(); }
+            await Promise.all(Array.from({ length: Math.min(conc, fns.length) }, () => next()));
+            return res;
+        }
+        async function safe(fn, retries = 3) {
+            let lastErr;
+            for (let i = 0; i < retries; i++) {
+                try { return await fn(); }
+                catch (e) { lastErr = e; if (i < retries - 1) await sleep(600 * (i + 1)); }
+            }
+            throw lastErr;
+        }
+        async function post(url, q, slug) {
+            const r = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ query: q, slug }) });
+            if (!r.ok) throw new Error(`HTTP ${r.status}: ${await r.text()}`);
+            const j = await r.json();
+            if (!j.success) throw new Error(j.data?.message || 'API error');
+            return j.data;
+        }
+        const query = (q, slug) => safe(async () => (await post(API_URL, q, slug)).records || []);
+        // /reports/count short-circuits at the query's LIMIT → cheap "is it above the cap?" probe
+        const countQuery = (q, slug) => safe(async () => Number((await post(COUNT_URL, q, slug))?.count) || 0);
+
+        async function paginate(q, slug, batch = 5000) {
+            let all = [], page = 0;
+            while (true) {
+                const rows = await query(q.replace('__LO__', `LIMIT ${batch} OFFSET ${page * batch}`), slug);
+                all = all.concat(rows);
+                if (!rows.length) break;
+                page++;
+            }
+            return all;
+        }
+        function sq(arr) { return arr.map(v => `'${String(v).replace(/'/g, "''")}'`).join(','); }
+        function and(...p) { return p.filter(Boolean).join(' AND '); }
+        function hashStr(s) { let h = 5381; for (let i = 0; i < s.length; i++) h = ((h << 5) + h + s.charCodeAt(i)) | 0; return (h >>> 0).toString(36); }
+
+        function dateRange(val) {
+            switch (val) {
+                case 'today': return [istDayStart(0), istDayEnd(0)];
+                case 'yesterday': return [istDayStart(1), istDayEnd(1)];
+                case 'last7': return [istDayStart(6), istDayEnd(0)];
+                case 'last15': return [istDayStart(14), istDayEnd(0)];
+                case 'last30': return [istDayStart(29), istDayEnd(0)];
+                case 'last90': return [istDayStart(89), istDayEnd(0)];
+                default: return null;
+            }
+        }
+
+        // ═══════════════════════════════════════════════════════════════
+        // METRICS / FUNNEL DEFINITIONS
+        // ═══════════════════════════════════════════════════════════════
+        const METRICS = [
+            { key: 'total', label: 'Total Leads', cls: 'blue' },
+            { key: 'untouched', label: 'Untouched Leads', cls: 'red' },
+            { key: 'followToday', label: 'Follow-up Today', cls: 'orange' },
+            { key: 'missed', label: 'Missed Follow-ups', cls: 'deeporange' },
+            { key: 'future', label: 'Future Follow-ups', cls: 'indigo' },
+            { key: 'callback', label: 'WhatsApp Bot · Not Called (since 1 Oct)', cls: 'teal' },
+            { key: 'visitToday', label: 'Visit Booked for Today', cls: 'green' },
+            { key: 'visitTomorrow', label: 'Visit Booked for Tomorrow', cls: 'purple' },
+            { key: 'aiCallback', label: 'Counselor Call Back Requested · AI Bot (15d)', cls: 'pink' },
+        ];
+        // Section 02 columns (per the new table spec)
+        const S2_METRICS = [
+            { key: 'total', label: 'Total', full: 'Total leads' },
+            { key: 'untouched', label: 'Untouched', full: 'Stage is Untouched Lead' },
+            { key: 'followToday', label: 'Follow-up Today', full: 'Follow-up due today' },
+            { key: 'missed', label: 'Follow-up Missed', full: 'Follow-up date has passed' },
+            { key: 'pulledBack', label: 'Pull-back EOD', full: 'Will be pulled back today EOD: callback due today and not yet called' },
+            { key: 'callback', label: 'Callback Req.', full: 'Call back requested since 1 Oct and not called yet' },
+        ];
+        const FUNNEL_STAGES = [
+            { key: 'untouched', label: 'Untouched', color: '#f59e0b' },
+            { key: 'notconnected', label: 'Not Connected', color: '#64748b' },
+            { key: 'callback', label: 'Call Back', color: '#8b5cf6' },
+            { key: 'qualified', label: 'Qualified', color: '#2563eb' },
+            { key: 'junk', label: 'Not Interested / Eligible', color: '#ef4444' },
+            { key: 'admission', label: 'Admission Done', color: '#16a34a' },
+        ];
+        const S1_KEYS = [...METRICS.map(m => m.key), ...FUNNEL_STAGES.map(s => 'f_' + s.key)];
+        const S2_KEYS = S2_METRICS.map(m => m.key);
+
+        const STAGE = {
+            UNTOUCHED: 'Untouched Lead', NOT_CONNECTED: 'Not-Connected', CALL_BACK: 'Call Back',
+            NOT_INTERESTED: 'Not-Interested', NOT_ELIGIBLE: 'Not-Eligible', ADMISSION_DONE: 'Admission Done',
+        };
+        const QUALIFIED_STAGES = ['Qualified Lead', 'Qualified: Branch visit Booked', 'Qualified: Branch visit Done', 'Qualified: House visit Booked', 'Qualified: House visit Done'];
+        const EXCLUDED_STAGES = [STAGE.ADMISSION_DONE, STAGE.NOT_INTERESTED, STAGE.NOT_ELIGIBLE, STAGE.UNTOUCHED];
+
+        // prefix '' → bare lead fields; prefix = upward lead path (inverted queries)
+        function metricPreds(prefix = '') {
+            const p = prefix ? prefix + '.' : '';
+            const T_S = DATES.TODAY_S, T_E = DATES.TODAY_E, L15 = DATES.L15_S;
+            const NF = p + 'AESL_Next_Follow_up_date__c', CB = p + 'call_back_date', LC = p + 'last_conversation_date_time';
+            // const VS = p + 'branch_visit_scheduled_for_date_time', VD = p + 'branch_visit_done_date', stage = p + 'stage';
+            const stage = p + 'stage';
+            const notExcl = `${stage} NOT IN (${sq(EXCLUDED_STAGES)})`;
+            const MODE = p + LEAD_NEXT_FU_MODE, HB = p + LEAD_HOME_VISIT_BOOK, BB = p + LEAD_BRANCH_VISIT_BOOK, AI = p + LEAD_AI_QUALIFIED;
+            const visitOn = (s, e) => `((${MODE} = 'Branch Visit' AND ${BB} >= ${s} AND ${BB} <= ${e}) OR (${MODE} = 'Home Visit' AND ${HB} >= ${s} AND ${HB} <= ${e}))`;
+            return {
+                total: '1 = 1',
+                untouched: `${stage} = '${STAGE.UNTOUCHED}'`,
+                followToday: `${NF} >= ${T_S} AND ${NF} <= ${T_E} AND ${notExcl}`,
+                missed: `${NF} IS NOT NULL AND ${NF} < ${T_S} AND ${notExcl}`,
+                future: `${NF} > ${T_E} AND ${notExcl}`,
+                callback: `${CB} >= ${DATES.WA_CB_FROM} AND ${CB} <= ${T_E} AND (${LC} IS NULL OR ${LC} < ${CB})`,
+                // ⚠ assumption: callback scheduled for today and not yet called
+                pulledBack: `${CB} >= ${T_S} AND ${CB} <= ${T_E} AND (${LC} IS NULL OR ${LC} < ${CB})`,
+                visitToday: visitOn(T_S, T_E),
+                visitTomorrow: visitOn(DATES.TOM_S, DATES.TOM_E),
+                aiCallback: `${AI} >= ${DATES.AI_S} AND ${AI} <= ${T_E}`,
+            };
+        }
+        
+        function funnelPredPrefixed(prefix, key) {
+            const stage = (prefix ? prefix + '.' : '') + 'stage';
+            switch (key) {
+                case 'untouched': return `${stage} = '${STAGE.UNTOUCHED}'`;
+                case 'notconnected': return `${stage} = '${STAGE.NOT_CONNECTED}'`;
+                case 'callback': return `${stage} = '${STAGE.CALL_BACK}'`;
+                case 'qualified': return `${stage} IN (${sq(QUALIFIED_STAGES)})`;
+                case 'junk': return `${stage} IN (${sq([STAGE.NOT_INTERESTED, STAGE.NOT_ELIGIBLE])})`;
+                case 'admission': return `${stage} = '${STAGE.ADMISSION_DONE}'`;
+                default: return '1 = 1';
+            }
+        }
+
+        // COUNT(DISTINCT CASE WHEN …) columns — one row serves cards + funnel (no separate GROUP BY)
+        function aggCols(idc, p, metrics, withFunnel) {
+            const MP = metricPreds(p);
+            const cnt = pred => `COUNT(DISTINCT CASE WHEN ${pred} THEN ${idc} END)`;
+            const cols = [`COUNT(DISTINCT ${idc}) as total`];
+            metrics.forEach(m => { if (m.key !== 'total') cols.push(`${cnt(MP[m.key])} as ${m.key}`); });
+            if (withFunnel) FUNNEL_STAGES.forEach(s => cols.push(`${cnt(funnelPredPrefixed(p, s.key))} as f_${s.key}`));
+            return cols.join(', ');
+        }
+        // engine lower-cases aliases → map back to camelCase keys
+        function normalizeRow(row, keys) {
+            const lc = {}; keys.forEach(k => lc[k.toLowerCase()] = k);
+            const out = {};
+            Object.keys(row || {}).forEach(k => { out[lc[k.toLowerCase()] || k] = Number(row[k]) || 0; });
+            return out;
+        }
+        const normalizeCountRow = r => normalizeRow(r, S1_KEYS);
+
+        // ═══════════════════════════════════════════════════════════════
+        // STATE
+        // ═══════════════════════════════════════════════════════════════
+        const state = {
+            rd: [], rsgh: [], branch: [], tl: [], owner: [], school: [], class: [],
+            dateMod: 'all', qualified: 'all', visitDone: 'all', type: null, currentDd: null,
+            s2type: 'taken', s2branch: [], schRange: 'all', appeared: 'all', origin: [], s2class: [],
+            s2qual: 'all', s2visit: 'all', s2school: [], s2stage: [],
+        };
+        let _allUsers = null, _userMap = null, _qSet = null, _vSet = null, _baseWhere = '', _cardCounts = null, _cardCapped = null;
+        let _s1bRendered = false, _s1bLoading = false;
+        let s2Data = { iacst: null, anthe: null }, s2Sel = null, _s2Rendered = false, _s2Loading = false, _s2bReq = 0, _s2BranchesLoaded = false;
+        let _s2qSet = null, _s2vSet = null, _s2SetsKey = null;
+        const _bdWhere = { s1: { branch: [], user: [] }, s2: { branch: [], user: [] } };
+        window._remarksStore = {};
+
+        // ═══════════════════════════════════════════════════════════════
+        // OWNER + LEAD-SCOPE WHERE
+        // ═══════════════════════════════════════════════════════════════
+        const ACCESSIBLE_OWNERS = "'{{@accessible_owners}}'";
+        function ownerScope(prefix = '') { return `${prefix ? prefix + '.' : ''}owner IN (${ACCESSIBLE_OWNERS})`; }
+        function leadScopeWhere(prefix = '') {
+            const p = prefix ? prefix + '.' : '';
+            const parts = [ownerScope(prefix)];
+            if (state.rd.length) parts.push(`${p}owner.team_dept_head IN (${sq(state.rd)})`);
+            if (state.rsgh.length) parts.push(`${p}owner.team_sales_head IN (${sq(state.rsgh)})`);
+            if (state.branch.length) parts.push(`${p}owner.user_branch_name_user_management_ IN (${sq(state.branch)})`);
+            if (state.tl.length) parts.push(`${p}owner.team_supervisor IN (${sq(state.tl)})`);
+            if (state.owner.length) parts.push(`${p}owner.id IN (${sq(state.owner)})`);
+            if (state.school.length) parts.push(`${p}AESL_School_Name__c.name IN (${sq(state.school)})`);
+            if (state.class.length) parts.push(`${p}AESL_Class_Studying_In__c IN (${sq(state.class)})`);
+            return parts.join(' AND ');
+        }
+        function leadDateModWhere(prefix = '') {
+            const r = dateRange(state.dateMod);
+            if (!r) return '';
+            const p = prefix ? prefix + '.' : '';
+            return `${p}updated_at >= ${r[0]} AND ${p}updated_at <= ${r[1]}`;
+        }
+        // qualified / visit-done id restrictions on a given lead-id column
+        function idSetParts(idCol, qSet = _qSet, vSet = _vSet) {
+            const parts = [];
+            if (qSet) parts.push(qSet.size ? `${idCol} IN (${sq([...qSet])})` : '1 = 0');
+            if (vSet) parts.push(vSet.size ? `${idCol} IN (${sq([...vSet])})` : '1 = 0');
+            return parts;
+        }
+        const QUAL_DISP_PRED = `(conversation_status IN ('Visit Done','Call Counseled') OR follow_up_mode IN ('Branch Visit','Home Visit'))`;
+        const VISIT_DISP_PRED = `conversation_status = 'Visit Done'`;
+
+        // ═══════════════════════════════════════════════════════════════
+        // AY27 UNION  (A scholarship OR B product OR C brand-new lead)
+        // ⚠ never use `associated_x IS NULL` for "has none" (verified wrong on reverse relationships)
+        // ═══════════════════════════════════════════════════════════════
+        function ay27Branches() {
+            const S = REL_SCHOL, P = REL_PRODUCT;
+            const A = '(' + [
+                and(`${S}.AESL_Lead_Type__c = 'iACST'`, levelPred(`${S}.AESL_Level__c`, AY.iacstTerm)),
+                and(typePred(`${S}.AESL_Lead_Type__c`, ANTHE_TYPES), levelPred(`${S}.AESL_Level__c`, AY.antheTerm), rollOk(`${S}.${SCHOL_ROLL_NUMBER}`)),
+                and(`${S}.AESL_Lead_Type__c = 'IAT'`, levelPred(`${S}.AESL_Level__c`, AY.iatTerm), `${S}.${SCHOL_EXAM_DATE} >= ${AY.iatExamFrom}`),
+            ].map(x => `(${x})`).join(' OR ') + ')';
+            const B = levelIn(`${P}.AESL_Level__c`, AY.productTerms);
+            const noProd = `NOT EXISTS (SELECT 1 FROM ${PRODUCT_OBJECT} WHERE ${REL_PROD_LEAD}=leads_object.id)`;
+            const noSchol = `NOT EXISTS (SELECT 1 FROM ${SCHOL_OBJECT} WHERE ${REL_SCHOL_LEAD}=leads_object.id)`;
+            const C = `(created_at >= ${AY.newLeadFrom} AND ${noProd} AND ${noSchol})`;
+            return { A, B, C, S, P };
+        }
+        // Spec-literal union as correlated EXISTS — used for capped counts (LIMIT short-circuits it)
+        function ay27SpecUnion() {
+            const A3 = '(' + [
+                `(AESL_Lead_Type__c = 'iACST' AND ${levelPred('AESL_Level__c', AY.iacstTerm)})`,
+                `(${typePred('AESL_Lead_Type__c', ANTHE_TYPES)} AND ${levelPred('AESL_Level__c', AY.antheTerm)} AND ${rollOk(SCHOL_ROLL_NUMBER)})`,
+                `(AESL_Lead_Type__c = 'IAT' AND ${levelPred('AESL_Level__c', AY.iatTerm)} AND ${SCHOL_EXAM_DATE} >= ${AY.iatExamFrom})`,
+            ].join(' OR ') + ')';
+            return `(EXISTS (SELECT 1 FROM ${SCHOL_OBJECT} WHERE ${A3} AND ${REL_SCHOL_LEAD}=leads_object.id)`
+                + ` OR EXISTS (SELECT 1 FROM ${PRODUCT_OBJECT} WHERE ${levelIn('AESL_Level__c', AY.productTerms)} AND ${REL_PROD_LEAD}=leads_object.id)`
+                + ` OR (created_at >= ${AY.newLeadFrom} AND NOT EXISTS (SELECT 1 FROM ${PRODUCT_OBJECT} WHERE ${REL_PROD_LEAD}=leads_object.id) AND NOT EXISTS (SELECT 1 FROM ${SCHOL_OBJECT} WHERE ${REL_SCHOL_LEAD}=leads_object.id)))`;
+        }
+        // Inclusion–exclusion (|A∪B∪C| = A + B − A∩B + C; C from positive joins only) for exact aggregates
+        function ay27IEParts() {
+            const { A, B, S, P } = ay27Branches();
+            const nov = `created_at >= ${AY.newLeadFrom}`, hasP = `${P}.id IS NOT NULL`, hasS = `${S}.id IS NOT NULL`;
+            return [
+                { where: A, sign: 1 }, { where: B, sign: 1 }, { where: and(A, B), sign: -1 },
+                { where: nov, sign: 1 }, { where: and(nov, hasP), sign: -1 }, { where: and(nov, hasS), sign: -1 }, { where: and(nov, hasP, hasS), sign: 1 },
+            ];
+        }
+        function ay27ScopeParts() { return [leadScopeWhere(''), leadDateModWhere(''), `${LEAD_PRIMARY_MOBILE} IS NOT NULL`, ...idSetParts('id')]; }
+
+        // runs the 7 IE parts (conc 2 — the backend degrades under parallel heavy scans)
+        async function runIE(colsSql, groupByOwner, onPart) {
+            const scope = ay27ScopeParts(), parts = ay27IEParts();
+            let done = 0;
+            const results = await runPool(parts.map(pt => async () => {
+                const sql = groupByOwner
+                    ? `SELECT owner as oid, ${colsSql} FROM leads_object WHERE ${and(pt.where, ...scope)} GROUP BY owner ORDER BY owner ASC LIMIT 20000 OFFSET 0`
+                    : `SELECT ${colsSql} FROM leads_object WHERE ${and(pt.where, ...scope)} LIMIT 1 OFFSET 0`;
+                const rows = await query(sql, 'leads_object');
+                if (onPart) onPart(++done, parts.length);
+                return rows;
+            }), 2);
+            return { parts, results };
+        }
+        function sumIE({ parts, results }, keys) {
+            const out = {};
+            results.forEach((rows, i) => {
+                const n = normalizeRow(rows[0], keys);
+                Object.keys(n).forEach(k => { out[k] = (out[k] || 0) + parts[i].sign * n[k]; });
+            });
+            Object.keys(out).forEach(k => { if (out[k] < 0) out[k] = 0; });
+            return out;
+        }
+
+        // ═══════════════════════════════════════════════════════════════
+        // COHORT DEFINITIONS (Type of Leads)
+        // ═══════════════════════════════════════════════════════════════
+        function eligPred(field, kind) {
+            switch (kind) {
+                case 'notnull': return `${field} IS NOT NULL`;
+                case 'null': return `${field} IS NULL`;
+                case 'gte60': return `${field} >= 60`;
+                case 'lt60': return `${field} < 60`;
+                default: return '1 = 1';
+            }
+        }
+        // lead-side WHERE (drill-downs, exports, 01B)
+        function schCohortExists(sc) {
+            const inner = and(typePred('AESL_Lead_Type__c', sc.lt), levelPred('AESL_Level__c', sc.term), eligPred(`associated_result.${RESULT_ELIGIBLE}`, sc.elig), sc.needRoll ? rollOk(SCHOL_ROLL_NUMBER) : '');
+            return `EXISTS (SELECT 1 FROM ${SCHOL_OBJECT} WHERE ${inner} AND ${REL_SCHOL_LEAD}=leads_object.id)`;
+        }
+
+        function cohortWhere(type) {
+            const sc = SCHOL_COHORTS[type];
+            if (sc) return schCohortExists(sc);
+            switch (type) {
+                case 'ice27': return `crp IN (${sq(ICE_CRP_VALUES)})`;
+                case 'wa_callback': return `call_back_date >= ${DATES.WA_CB_FROM} AND call_back_date <= ${DATES.TODAY_E}`;
+                case 'ay27': return ay27SpecUnion();
+                default: return '1 = 1';
+            }
+        }
+        // child-object-first router for the count queries. Returns null for ay27 (→ IE path).
+        function invertedCohort(type) {
+            if (type === 'ice27' || type === 'wa_callback') return { from: 'leads_object', L: '', where: cohortWhere(type) };
+            const sc = SCHOL_COHORTS[type];
+            if (!sc) return null;
+            const rType = sc.rKey && RESULT_TYPES[sc.rKey];
+            if (rType && sc.elig !== 'null') {   // optional fast path (result table → scholarship → lead)
+                return { from: RESULT_OBJECT, L: `${REL_RESULT_SCHOL}.${REL_SCHOL_LEAD}`, where: and(`Type__c = '${rType}'`, eligPred(RESULT_ELIGIBLE, sc.elig)) };
+            }
+            return {
+                from: SCHOL_OBJECT, L: REL_SCHOL_LEAD,
+                where: and(typePred('AESL_Lead_Type__c', sc.lt), levelPred('AESL_Level__c', sc.term), eligPred(`associated_result.${RESULT_ELIGIBLE}`, sc.elig), sc.needRoll ? rollOk(SCHOL_ROLL_NUMBER) : '')
+            };
+        }
+        function buildBaseWhere() {
+            return and(cohortWhere(state.type), leadScopeWhere(''), leadDateModWhere(''), state.type === 'ay27' ? `${LEAD_PRIMARY_MOBILE} IS NOT NULL` : '', ...idSetParts('id'));
+        }
+        function invContextWithScope() {
+            const inv = invertedCohort(state.type);
+            if (!inv) return null;
+            const idCol = inv.L || 'id';
+            return { from: inv.from, L: inv.L, idCol, where: and(inv.where, leadScopeWhere(inv.L), leadDateModWhere(inv.L), ...idSetParts(idCol)) };
+        }
+        function drillContextS1(predForL, metricKey) {
+            const inv = invertedCohort(state.type);
+            const exportWhere = and(_baseWhere, metricKey === 'total' || metricKey === '__funnel__' ? '' : metricPreds()[metricKey]);
+            if (inv) {
+                const L = inv.L, idCol = L || 'id';
+                return { from: inv.from, L, where: and(inv.where, leadScopeWhere(L), leadDateModWhere(L), predForL(L), ...idSetParts(idCol)), exportWhere };
+            }
+            return { from: 'leads_object', L: '', where: and(_baseWhere, predForL('')), exportWhere };
+        }
+
+        // ═══════════════════════════════════════════════════════════════
+        // OPTIONAL call_disposition FILTERS (Qualified / Visit Done)
+        // ═══════════════════════════════════════════════════════════════
+        async function dispositionLeadIds(rangeVal, statusPred) {
+            const r = dateRange(rangeVal); if (!r) return null;
+            const where = and(
+                `created_at >= ${r[0]}`, `created_at <= ${r[1]}`, statusPred,
+                ownerScope('leads_object'),
+                state.rsgh.length ? `leads_object.owner.team_sales_head IN (${sq(state.rsgh)})` : ''
+            );
+            const rows = await paginate(`SELECT DISTINCT leads_object as lead_id FROM leads_object_call_disposition WHERE ${where} ORDER BY leads_object ASC __LO__`, 'leads_object_call_disposition');
+            return new Set(rows.map(x => x.lead_id).filter(Boolean));
+        }
+        async function prepareSets() {
+            const needCd = dateRange(state.qualified) || dateRange(state.visitDone);
+            let qSet = null, vSet = null;
+            if (needCd) [qSet, vSet] = await Promise.all([
+                dispositionLeadIds(state.qualified, `(conversation_status IN ('Visit Done','Call Counseled') OR follow_up_mode IN ('Branch Visit','Home Visit'))`),
+                dispositionLeadIds(state.visitDone, `conversation_status = 'Visit Done'`),
+            ]);
+            _qSet = qSet; _vSet = vSet;
+            _baseWhere = buildBaseWhere();
+            return needCd;
+        }
+
+        // ═══════════════════════════════════════════════════════════════
+        // SECTION 01 — COUNTS
+        // ═══════════════════════════════════════════════════════════════
+        async function fetchCardsCapped(onMetric) {
+            const emit = (k, v, c) => { try { onMetric && onMetric(k, v, c); } catch (e) { } };
+            const keys = METRICS.map(m => m.key), counts = {}, capped = new Set(), lim = COUNT_CAP + 1;
+            const inv = invContextWithScope();
+            const setCount = (k, c) => { if (c > COUNT_CAP) { capped.add(k); counts[k] = COUNT_CAP; } else counts[k] = c; emit(k, counts[k], capped.has(k)); };
+            if (inv) {
+                const MPL = metricPreds(inv.L);
+                await runPool(keys.map(k => async () => {
+                    setCount(k, await countQuery(`SELECT DISTINCT ${inv.idCol} FROM ${inv.from} WHERE ${and(inv.where, k === 'total' ? '' : MPL[k])} LIMIT ${lim}`, inv.from));
+                }), 4);
+            } else {
+                const scope = ay27ScopeParts(), MP = metricPreds(''), U = ay27SpecUnion();
+                await runPool(keys.map(k => async () => {
+                    setCount(k, await countQuery(`SELECT id FROM leads_object WHERE ${and(k === 'total' ? '' : MP[k], U, ...scope)} LIMIT ${lim}`, 'leads_object'));
+                }), 2);
+            }
+            return { counts, capped };
+        }
+
+        async function fetchAll() {
+            const needCd = dateRange(state.qualified) || dateRange(state.visitDone);
+            initProgress([...(needCd ? [{ key: 'cd', label: 'Applying filters' }] : []), { key: 'count', label: 'Calculating totals' }]);
+            if (needCd) setStep('cd', 'active');
+            try { await prepareSets(); if (needCd) setStep('cd', 'done'); } catch (e) { if (needCd) setStep('cd', 'error'); throw e; }
+            setStep('count', 'active'); setProgress(needCd ? 40 : 15);
+            const inv = invContextWithScope();
+            try {
+                if (inv) {
+                    const rows = await query(`SELECT ${aggCols(inv.idCol, inv.L, METRICS, true)} FROM ${inv.from} WHERE ${inv.where} LIMIT 1 OFFSET 0`, inv.from);
+                    _cardCounts = normalizeCountRow(rows[0]);
+                } else {
+                    const base = needCd ? 40 : 15;
+                    const ie = await runIE(aggCols('id', '', METRICS, true), false, (d, n) => setProgress(Math.min(95, base + Math.round(d * (80 / n)))));
+                    _cardCounts = sumIE(ie, S1_KEYS);
+                }
+                setStep('count', 'done');
+            } catch (e) { setStep('count', 'error'); throw e; }
+            setProgress(100);
+            return _cardCounts;
+        }
+
+        async function fetchFunnelOnly() {
+            const inv = invContextWithScope();
+            if (inv) {
+                const cnt = pred => `COUNT(DISTINCT CASE WHEN ${pred} THEN ${inv.idCol} END)`;
+                const cols = FUNNEL_STAGES.map(s => `${cnt(funnelPredPrefixed(inv.L, s.key))} as f_${s.key}`).join(', ');
+                return normalizeCountRow((await query(`SELECT ${cols} FROM ${inv.from} WHERE ${inv.where} LIMIT 1 OFFSET 0`, inv.from))[0]);
+            }
+            const cols = FUNNEL_STAGES.map(s => `COUNT(DISTINCT CASE WHEN ${funnelPredPrefixed('', s.key)} THEN id END) as f_${s.key}`).join(', ');
+            return sumIE(await runIE(cols, false), FUNNEL_STAGES.map(s => 'f_' + s.key));
+        }
+
+        // ═══════════════════════════════════════════════════════════════
+        // SECTION 01 — RENDER
+        // ═══════════════════════════════════════════════════════════════
+        function renderCardShells(skeleton) {
+            document.getElementById('cards').innerHTML = METRICS.map(m => `
+    <div class="card ${m.cls}" data-cardmetric="${m.key}" title="${m.label} — click to view leads">
+        <div class="card-top"><span class="dot"></span><div class="card-title">${m.label}</div></div>
+        <div class="card-value ${skeleton ? 'skel' : ''}" id="cv-${m.key}">${skeleton ? '—' : '0'}</div>
+    </div>`).join('');
+        }
+        function updateCard(key, value, isCapped) {
+            const el = document.getElementById('cv-' + key); if (!el) return;
+            el.classList.remove('skel');
+            if (isCapped) { el.textContent = CAP_LABEL; el.title = 'More than 5,00,000 leads — click “Get exact numbers” below the funnel for the precise count'; }
+            else { el.textContent = fmtN(value); el.title = ''; }
+        }
+        function renderCards(counts, capped) { METRICS.forEach(m => updateCard(m.key, counts[m.key], capped && capped.has(m.key))); }
+
+        // 3D pie of lead stages — each slice is clickable (data-fkey → drilldown)
+        function renderFunnel(counts) {
+            const cOf = s => Number(counts['f_' + s.key]) || 0;
+            const total = FUNNEL_STAGES.reduce((sum, st) => sum + cOf(st), 0);
+            if (!total) { document.getElementById('funnel').innerHTML = '<div style="padding:30px;text-align:center;color:#9ca3af">No stage data.</div>'; return; }
+            const W = 620, H = 340, cx = W / 2, cy = 150, rx = 110, ry = 60, depth = 32, TAU = Math.PI * 2, START = -Math.PI / 2;
+            const dark = (hex, f = 0.62) => { const n = parseInt(hex.slice(1), 16); return `rgb(${Math.round(((n >> 16) & 255) * f)},${Math.round(((n >> 8) & 255) * f)},${Math.round((n & 255) * f)})`; };
+            const ptOnTop = a => [cx + rx * Math.cos(a), cy + ry * Math.sin(a)];
+            const topArc = (a0, a1) => {
+                const [x0, y0] = ptOnTop(a0), [x1, y1] = ptOnTop(a1);
+                return `M ${cx} ${cy} L ${x0} ${y0} A ${rx} ${ry} 0 ${(a1 - a0) % TAU > Math.PI ? 1 : 0} 1 ${x1} ${y1} Z`;
+            };
+            let acc = 0;
+            const slices = FUNNEL_STAGES.map(s => {
+                const count = cOf(s), frac = count / total, a0 = START + acc * TAU; acc += frac;
+                const a1 = START + acc * TAU;
+                return { s, count, frac, a0, a1, mid: (a0 + a1) / 2 };
+            }).filter(z => z.count > 0);
+            const walls = [];
+            slices.forEach(z => {
+                const steps = Math.max(2, Math.ceil((z.a1 - z.a0) / 0.12));
+                for (let i = 0; i < steps; i++) {
+                    const b0 = z.a0 + (z.a1 - z.a0) * (i / steps), b1 = z.a0 + (z.a1 - z.a0) * ((i + 1) / steps), mids = Math.sin((b0 + b1) / 2);
+                    if (mids <= 0) continue;
+                    const [xa, ya] = ptOnTop(b0), [xb, yb] = ptOnTop(b1);
+                    walls.push({ z: mids, d: `M ${xa} ${ya} L ${xb} ${yb} L ${xb} ${yb + depth} L ${xa} ${ya + depth} Z`, fill: dark(z.s.color) });
+                }
+            });
+            walls.sort((p, q) => p.z - q.z);
+            const LABEL_H = 30;
+            const build = (arr, right) => {
+                arr.sort((a, b) => a.ey - b.ey);
+                for (let i = 1; i < arr.length; i++) arr[i].ly = (arr[i].ey - arr[i - 1].ly < LABEL_H) ? arr[i - 1].ly + LABEL_H : arr[i].ey;
+                arr.forEach(a => a.ly -= 18);
+                if (arr.length && arr[0].ly < 20) { const u = 20 - arr[0].ly; arr.forEach(a => a.ly += u); }
+                return arr.map(z => {
+                    const tx = cx + (right ? 1 : -1) * (rx + 40), anchor = right ? 'start' : 'end';
+                    return `<line x1="${z.ex}" y1="${z.ey}" x2="${tx - (right ? 6 : -6)}" y2="${z.ly}" stroke="#9ca3af" stroke-width="1.2"/>
+                <text x="${tx}" y="${z.ly - 3}" text-anchor="${anchor}" style="font-size:10px;font-weight:700;fill:#374151">${z.s.label}</text>
+                <text x="${tx}" y="${z.ly + 12}" text-anchor="${anchor}" style="font-size:9px;fill:#6b7280">${fmtN(z.count)} · ${Math.round(z.frac * 100)}%</text>`;
+                }).join('');
+            };
+            const lab = slices.map(z => { const [ex, ey] = ptOnTop(z.mid); return { s: z.s, count: z.count, frac: z.frac, ex, ey, ly: ey, right: Math.cos(z.mid) >= 0 }; });
+            const labels = build(lab.filter(l => l.right), true) + build(lab.filter(l => !l.right), false);
+            const tops = slices.map(z => `<path d="${topArc(z.a0, z.a1)}" fill="${z.s.color}" stroke="#fff" stroke-width="1.5" data-fkey="${z.s.key}" style="cursor:pointer"/>`).join('');
+            document.getElementById('funnel').innerHTML = `<svg viewBox="0 0 ${W} ${H}" style="width:100%;display:block">
+            ${walls.map(w => `<path d="${w.d}" fill="${w.fill}" stroke="${w.fill}" stroke-width="0.5"/>`).join('')}${tops}${labels}</svg>`;
+        }
+
+        // ═══════════════════════════════════════════════════════════════
+        // CACHE (localStorage, per-user, 30-entry LRU, 30-min TTL)
+        // ═══════════════════════════════════════════════════════════════
+        const CAP_CACHE_TTL = 30 * 60 * 1000, CAP_CACHE_MAX = 30;
+        const CAP_CACHE_PREFIX = 'lfcap4:', CAP_CACHE_IDX = 'lfcap4:index';
+        const META_CACHE_TTL = 60 * 60 * 1000;
+        const META_PREFIX = 'lfmeta:' + (token ? token.split(':')[0] : 'anon') + ':';
+        const LAST_FILTERS_KEY = 'lf:lastFilters3';
+
+        function metaGet(name) {
+            try {
+                const raw = localStorage.getItem(META_PREFIX + name); if (!raw) return null;
+                const p = JSON.parse(raw);
+                if (Date.now() - p.t > META_CACHE_TTL) { localStorage.removeItem(META_PREFIX + name); return null; }
+                return p.v;
+            } catch (e) { return null; }
+        }
+        function metaSet(name, v) { try { localStorage.setItem(META_PREFIX + name, JSON.stringify({ t: Date.now(), v })); } catch (e) { } }
+
+        function _lruTouch(key) {
+            try {
+                let idx = []; try { idx = JSON.parse(localStorage.getItem(CAP_CACHE_IDX)) || []; } catch (e) { }
+                idx = idx.filter(e => e.k !== key); idx.push({ k: key, u: Date.now() });
+                while (idx.length > CAP_CACHE_MAX) localStorage.removeItem(CAP_CACHE_PREFIX + idx.shift().k);
+                localStorage.setItem(CAP_CACHE_IDX, JSON.stringify(idx));
+            } catch (e) { }
+        }
+        function capCacheGet(key) {
+            try {
+                const raw = localStorage.getItem(CAP_CACHE_PREFIX + key); if (!raw) return null;
+                const p = JSON.parse(raw);
+                if (Date.now() - p.t > CAP_CACHE_TTL) { localStorage.removeItem(CAP_CACHE_PREFIX + key); return null; }
+                _lruTouch(key); return p;
+            } catch (e) { return null; }
+        }
+        function capCacheSet(key, payload) {
+            try { localStorage.setItem(CAP_CACHE_PREFIX + key, JSON.stringify(payload)); _lruTouch(key); }
+            catch (e) {
+                try {
+                    (JSON.parse(localStorage.getItem(CAP_CACHE_IDX)) || []).forEach(en => localStorage.removeItem(CAP_CACHE_PREFIX + en.k));
+                    localStorage.removeItem(CAP_CACHE_IDX);
+                    localStorage.setItem(CAP_CACHE_PREFIX + key, JSON.stringify(payload)); _lruTouch(key);
+                } catch (e2) { }
+            }
+        }
+        function purgeLegacyCaches() {   // v2 cache shape is incompatible
+            try { Object.keys(localStorage).filter(k => k.startsWith('lfcap2:') || k === 'lf:lastFilters').forEach(k => localStorage.removeItem(k)); } catch (e) { }
+        }
+
+        let _selfUserId = null, _selfInfo = null;
+        async function ensureSelfId() {
+            if (_selfUserId) return _selfUserId;
+            const SELF_KEY = 'self2:' + hashStr(token || 'anon');
+            const cached = metaGet(SELF_KEY);
+            if (cached && cached.id) { _selfUserId = cached.id; _selfInfo = cached; }
+            if (!_selfUserId) {
+                try {
+                    const r = await fetch(BASE_URL + '/api/v1/org/user/me', { headers: { 'Authorization': `Bearer ${token}`, 'client-id': CLIENT_ID, 'client-secret': CLIENT_SECRET } });
+                    const d = (await r.json())?.data || {};
+                    if (d.user_id) { _selfUserId = d.user_id; _selfInfo = { id: d.user_id, email: d.email || '', name: d.name || '', user_type: d.user_type || '', role_id: d.role_id || '' }; }
+                } catch (e) { }
+                if (!_selfUserId) _selfUserId = 'tk' + hashStr(token || 'anon'); else metaSet(SELF_KEY, _selfInfo);
+            }
+            try {   // shared-machine hygiene: purge previous user's caches
+                const last = metaGet('lastUser');
+                if (last && last !== _selfUserId) {
+                    (JSON.parse(localStorage.getItem(CAP_CACHE_IDX)) || []).forEach(en => localStorage.removeItem(CAP_CACHE_PREFIX + en.k));
+                    localStorage.removeItem(CAP_CACHE_IDX); localStorage.removeItem(LAST_FILTERS_KEY);
+                }
+                if (last !== _selfUserId) metaSet('lastUser', _selfUserId);
+            } catch (e) { }
+            return _selfUserId;
+        }
+
+        function cappedKeyFromParts(p) { return hashStr(JSON.stringify([_selfUserId, p.type, p.rd, p.rsgh, p.branch, p.tl, p.owner, p.school, p.class, p.dateMod, p.qualified, p.visitDone])); }
+        const cappedCacheKey = () => cappedKeyFromParts(state);
+        const breakdownCacheKey = () => 'bd' + cappedKeyFromParts(state);
+        const s2CacheKey = () => 's2' + hashStr(JSON.stringify([cappedKeyFromParts(state), state.s2type, state.s2branch, state.schRange, state.appeared, state.origin, state.s2class, state.s2qual, state.s2visit, state.s2school, state.s2stage]));
+
+        // ═══════════════════════════════════════════════════════════════
+        // HEAVY-COHORT FIRST LOAD
+        // ═══════════════════════════════════════════════════════════════
+        let _forceRefresh = false, _cappedCachedAt = null;
+
+        async function runCappedFlow() {
+            initProgress([{ key: 'fast', label: 'Loading your counts' }]);
+            setStep('fast', 'active'); setProgress(10);
+            document.getElementById('funnel').innerHTML = `
+        <div style="padding:36px 20px;text-align:center">
+            <div style="color:#6b7280;font-size:13px;margin-bottom:14px">
+                This selection has a very large number of leads, so counts above 5,00,000 are shown as “5,00,000+”.<br>
+                To see precise numbers and the stage funnel, click below (takes about ${state.type === 'ay27' ? '1–2 minutes' : 'a minute'}).
+            </div>
+            <button class="btn-apply" id="exact-btn" style="margin:0 auto"><i class="fas fa-calculator"></i> Get exact numbers &amp; funnel</button>
+        </div>`;
+            document.getElementById('exact-btn').addEventListener('click', onExact);
+            await prepareSets(); await ensureSelfId(); setProgress(25);
+            const force = _forceRefresh; _forceRefresh = false;
+            let counts, capped; const key = cappedCacheKey(); _cappedCachedAt = null;
+            if (!force) { const p = capCacheGet(key); if (p) { counts = p.counts; capped = new Set(p.capped); _cappedCachedAt = p.t; } }
+            if (!counts) {
+                let done = 0;
+                ({ counts, capped } = await fetchCardsCapped((k, v, isCap) => { updateCard(k, v, isCap); done++; setProgress(Math.min(90, 25 + Math.round(done * (65 / METRICS.length)))); }));
+                if (!capped.size) {   // narrow cohort → funnel is cheap, load it now
+                    document.getElementById('funnel').innerHTML = '<div class="loader"></div>';
+                    try { Object.assign(counts, await fetchFunnelOnly()); } catch (e) { console.error('funnel load failed', e); }
+                }
+                capCacheSet(key, { t: Date.now(), counts, capped: [...capped] });
+            }
+            setStep('fast', 'done'); setProgress(100);
+            _cardCounts = counts; _cardCapped = capped;
+            renderCards(counts, capped);
+            if (!capped.size && counts['f_' + FUNNEL_STAGES[0].key] != null) renderFunnel(counts);
+        }
+
+        async function onExact() {
+            const btn = document.getElementById('exact-btn');
+            if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Computing…'; }
+            const rp = document.getElementById('run-pill'); rp.className = 'run-pill'; rp.textContent = 'Getting exact numbers…';
+            const t0 = performance.now();
+            try {
+                await fetchAll(); _cardCapped = null;
+                renderCards(_cardCounts); renderFunnel(_cardCounts);
+                capCacheSet(cappedCacheKey(), { t: Date.now(), counts: _cardCounts, capped: [] });
+                document.getElementById('progress-wrap').style.display = 'none';
+                rp.className = 'run-pill ran'; rp.textContent = `${fmtN(_cardCounts.total)} leads · exact · ${((performance.now() - t0) / 1000).toFixed(1)}s`;
+                setAsOf(Date.now());
+            } catch (e) {
+                console.error(e);
+                const eb = document.getElementById('error-banner'); eb.style.display = 'block'; eb.textContent = 'Exact count failed: ' + e.message;
+                rp.textContent = 'Could not load exact numbers';
+                if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-calculator"></i> Get exact numbers &amp; funnel'; }
+            }
+        }
+
+        function setAsOf(ts) {
+            const el = document.getElementById('data-asof');
+            if (!ts) { el.style.display = 'none'; el.textContent = ''; return; }
+            const t = new Date(ts).toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit', timeZone: 'Asia/Kolkata' }).toLowerCase();
+            el.textContent = `Data as of ${t} · refreshes every 30 mins`; el.style.display = 'inline-flex';
+        }
+
+        // ── last-applied filters persist across reloads ──
+        function saveLastFilters() {
+            try {
+                localStorage.setItem(LAST_FILTERS_KEY, JSON.stringify({
+                    rd: state.rd, rsgh: state.rsgh, branch: state.branch, tl: state.tl, owner: state.owner, school: state.school, class: state.class,
+                    dateMod: state.dateMod, qualified: state.qualified, visitDone: state.visitDone, type: state.type,
+                    s2type: state.s2type, s2branch: state.s2branch, schRange: state.schRange, appeared: state.appeared, origin: state.origin, s2class: state.s2class, t: Date.now(),
+                    s2qual: state.s2qual, s2visit: state.s2visit, s2school: state.s2school, s2stage: state.s2stage,
+                }));
+            } catch (e) { }
+        }
+        function loadSavedFilters() { try { return JSON.parse(localStorage.getItem(LAST_FILTERS_KEY)); } catch (e) { return null; } }
+        function restoreLastFilters(saved) {
+            if (!saved || !saved.type) return false;
+            const checks = {
+                'fi-rd': saved.rd, 'fi-rsgh': saved.rsgh, 'fi-branch': saved.branch, 'fi-tl': saved.tl, 'fi-owner': saved.owner, 'fi-school': saved.school,
+                'fi-class': saved.class, 'fi-origin': saved.origin, 'fi-s2class': saved.s2class, 'fi-s2branch': saved.s2branch,
+                'fi-s2school': saved.s2school, 'fi-s2stage': saved.s2stage
+            };
+            Object.entries(checks).forEach(([id, vals]) => {
+                if (!Array.isArray(vals) || !vals.length) return;
+                const dd = document.getElementById(id)?.querySelector('.dd'); if (!dd) return;
+                vals.forEach(v => {
+                    let cb = [...dd.querySelectorAll('input[type=checkbox]:not(.select-all)')].find(c => c.value === v);
+                    if (!cb) { fillCheckboxDd(id, [{ value: v, name: v }]); cb = [...dd.querySelectorAll('input[type=checkbox]:not(.select-all)')].find(c => c.value === v); }
+                    if (cb) cb.checked = true;
+                });
+                updateFbt(id);
+            });
+            Object.entries({ 'fi-datemod': saved.dateMod, 'fi-qualified': saved.qualified, 'fi-visitdone': saved.visitDone, 'fi-schrange': saved.schRange, 'fi-appeared': saved.appeared, 'fi-s2type': saved.s2type, 'fi-s2qual': saved.s2qual, 'fi-s2visit': saved.s2visit })
+                .forEach(([id, v]) => { if (!v) return; const r = document.getElementById(id)?.querySelector(`input[type=radio][value="${v}"]`); if (r) { r.checked = true; updateFbt(id); } });
+            const t = document.querySelector(`input[name=type][value="${saved.type}"]`);
+            if (t) { t.checked = true; updateFbt('fi-type'); }
+            syncS2TypeUi();
+            return true;
+        }
+
+        // ═══════════════════════════════════════════════════════════════
+        // DRILL-DOWN (lead list modal)
+        // ═══════════════════════════════════════════════════════════════
+        const DRILL_COLS = ['Lead Name', 'PSID', 'Stage', 'Next Follow Up', 'Next FU Mode', 'Class Studying In', 'Branch Name', 'iACST 27 Reg', 'iACST 27 %', 'ANTHE/AKTHE 27 %', 'Overall Remarks', 'Branch Visit Book', 'Branch Visit Done', 'Home Visit Book', 'Home Visit Done', 'Owner', 'TL/Supervisor', 'RSGH'];
+        const S2_DRILL_COLS = ['Lead Name', 'PSID', 'Stage', 'Next Follow Up', 'Next FU Mode', 'Roll Number', 'Origin', 'Mode', 'Scholarship Created', 'Exam Type', 'Branch', 'Class Studying In', 'School Name', 'Term', 'Appear Date', 'Scholarship %', 'Remarks', 'Owner', 'TL/Supervisor', 'RSGH'];
+
+        let _drill = { ctx: null, total: 0, page: 0, cache: {}, label: '', kind: 'lead' };
+        async function openDrill(ctx, total, label, kind) {
+            _drill = { ctx, total: total || 0, page: 0, cache: {}, label, kind };
+            document.getElementById('modal-title').textContent = `${label} — ${fmtN(total)} leads`;
+            document.getElementById('modal-export').onclick = exportAllDrill;
+            document.getElementById('modal').classList.add('active');
+            await renderDrillPage();
+        }
+        async function pageLeadIds(ctx, page) {
+            const idCol = ctx.L || 'id';
+            const rows = await query(`SELECT DISTINCT ${idCol} as lead_id FROM ${ctx.from} WHERE ${ctx.where} ORDER BY ${idCol} ASC LIMIT ${DRILL_PAGE} OFFSET ${page * DRILL_PAGE}`, ctx.from);
+            return rows.map(r => r.lead_id).filter(Boolean);
+        }
+        const inList = ids => ids.map(x => `'${String(x).replace(/'/g, "''")}'`).join(',');
+
+        async function fetchLeadPage(ctx, page) {
+            const ids = await pageLeadIds(ctx, page); if (!ids.length) return [];
+            const [rows, schol] = await Promise.all([hydrateLeadRows(ids), fetchScholAggregates(ids)]);
+            const byId = {}; rows.forEach(r => byId[r.lead_id] = r);
+            return ids.map(id => ({ ...(byId[id] || { lead_id: id }), ...(schol[id] || {}) }));
+        }
+        async function hydrateLeadRows(ids) {
+            return query(`SELECT id as lead_id, name as lead_name, AESL_PS_ID__c as psid, stage as lead_stage,
+        AESL_Next_Follow_up_date__c as next_followup, ${LEAD_NEXT_FU_MODE} as next_fu_mode,
+        AESL_Class_Studying_In__c as class_studying, AESL_Branch_LK__c.name as branch_name, ${LEAD_OVERALL_REMARKS} as remarks,
+        branch_visit_scheduled_for_date_time as bv_book, branch_visit_done_date as bv_done,
+        home_visit_scheduled_date_time as hv_book, ${LEAD_HOME_VISIT_DONE} as hv_done,
+        owner.name as owner_name, owner.email as owner_email, owner.team_supervisor as supervisor, owner.team_sales_head as rsgh
+        FROM leads_object WHERE id IN (${inList(ids)}) LIMIT ${ids.length} OFFSET 0`, 'leads_object');
+        }
+        // Section 01 drill-down shows iACST 27 (Reg + %) and ANTHE 27 (%) per lead. Compared by level NAME (robust to missing IDs).
+
+        function openS1Drill(ctx, total, key) {
+            const win = VISIT_WIN[key]; if (win) ctx.visitWin = win;
+            openDrill(ctx, total, METRICS.find(m => m.key === key).label, win ? 'visit' : key === 'aiCallback' ? 'ai' : 'lead');
+        }
+
+
+
+
+
+        async function fetchScholAggregates(ids) {
+            const map = {}; if (!ids.length) return map;
+            const CHUNK = 500, chunks = [];
+            for (let i = 0; i < ids.length; i += CHUNK) chunks.push(ids.slice(i, i + CHUNK));
+            const fns = chunks.map(ch => () => query(`SELECT id as lead_id, ${REL_SCHOL}.AESL_Lead_Type__c as ltype,
+            ${REL_SCHOL}.AESL_Level__c.name as level_name, ${REL_SCHOL}.${SCHOL_ROLL_NUMBER} as roll,
+            ${REL_SCHOL}.associated_result.${RESULT_ELIGIBLE} as eligible
+            FROM leads_object WHERE id IN (${inList(ch)}) AND ${ownerScope('')} LIMIT ${CHUNK} OFFSET 0`, 'leads_object'));
+            (await runPool(fns, 4)).flat().forEach(r => {
+                const id = r.lead_id; if (!id) return;
+                if (!map[id]) map[id] = { iacstReg: false, iacstPct: null, anthePct: null };
+                const elig = (r.eligible === '' || r.eligible == null) ? null : Number(r.eligible);
+                if (r.ltype === 'iACST' && r.level_name === AY.iacstTerm && r.roll != null && String(r.roll).trim() !== '') {
+                    map[id].iacstReg = true;
+                    if (elig !== null && (map[id].iacstPct === null || elig > map[id].iacstPct)) map[id].iacstPct = elig;
+                }
+                if (ANTHE_TYPES.includes(r.ltype) && r.level_name === AY.antheTerm && r.roll != null && String(r.roll).trim() !== '' && elig !== null && (map[id].anthePct === null || elig > map[id].anthePct)) map[id].anthePct = elig;
+            });
+            return map;
+        }
+        // Section 02 lead page: scholarship columns, restricted to the scholarships that matched (ctx.hydrateExtra)
+        async function fetchScholPage(ctx, page) {
+            const ids = await pageLeadIds(ctx, page); if (!ids.length) return [];
+            const S = REL_SCHOL;
+            const rows = await query(`SELECT DISTINCT id as lead_id, name as lead_name, AESL_PS_ID__c as psid, stage as lead_stage,
+        AESL_Next_Follow_up_date__c as next_followup, ${LEAD_NEXT_FU_MODE} as next_fu_mode,
+        ${LEAD_OVERALL_REMARKS} as remarks, AESL_School_Name__c.name as school_name,
+        ${S}.${SCHOL_ROLL_NUMBER} as roll, ${S}.superleap_origin as origin, ${S}.AESL_Exam_Mode__c as mode, ${S}.created_at as schol_created,
+        ${S}.AESL_Lead_Type__c as exam_type, ${S}.AESL_Branch_LK_c.name as schol_branch,
+        ${S}.AESL_Class_Studying_In__c as class_studying, ${S}.AESL_Level__c.name as term,
+        ${S}.associated_result.${RESULT_ELIGIBLE} as eligible, ${S}.associated_result.AESL_Date_of_Exam__c as appear_date,
+        owner.name as owner_name, owner.email as owner_email, owner.team_supervisor as supervisor, owner.team_sales_head as rsgh
+        FROM leads_object WHERE id IN (${inList(ids)})${ctx.hydrateExtra ? ' AND ' + ctx.hydrateExtra : ''} LIMIT ${ids.length * 10} OFFSET 0`, 'leads_object');
+            const seen = new Set();
+            return rows.filter(r => r.lead_id && !seen.has(r.lead_id) && seen.add(r.lead_id));
+        }
+
+        const fmtDT = e => e ? new Date(Number(e)).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', day: '2-digit', month: 'short', year: '2-digit', hour: '2-digit', minute: '2-digit' }) : '—';
+        const inWin = (v, w) => v != null && v !== '' && Number(v) >= w[0] && Number(v) <= w[1];
+        const bookedTeam = (name, dept) => {
+            const n = (name || '').toLowerCase();
+            if (/website/.test(n)) return 'Website Booking';
+            if (/ai\s*bot|aibot/.test(n)) return 'AI BOT';
+            return dept || '—';
+        };
+        const LEAD_OWNER_COLS = `owner.name as owner_name, owner.email as owner_email, owner.user_branch_name_user_management_ as owner_branch, owner.team_sales_head as rsgh`;
+
+        async function hydrateVisitRows(ids) {
+            return query(`SELECT id as lead_id, name as lead_name, AESL_PS_ID__c as psid, stage as lead_stage,
+        AESL_Next_Follow_up_date__c as next_followup, AESL_Branch_LK__c.name as branch_name, ${LEAD_OVERALL_REMARKS} as remarks,
+        ${LEAD_BRANCH_VISIT_BOOK} as bv_book, ${LEAD_HOME_VISIT_BOOK} as hv_book,
+        branch_visit_done_date as bv_done, ${LEAD_HOME_VISIT_DONE} as hv_done,
+        ${LEAD_BRANCH_BOOKED_BY}.name as bv_by, ${LEAD_BRANCH_BOOKED_BY}.${USER_DEPT_FIELD} as bv_dept,
+        ${LEAD_HOME_BOOKED_BY}.name as hv_by, ${LEAD_HOME_BOOKED_BY}.${USER_DEPT_FIELD} as hv_dept,
+        ${LEAD_OWNER_COLS}
+        FROM leads_object WHERE id IN (${inList(ids)}) LIMIT ${ids.length} OFFSET 0`, 'leads_object');
+        }
+        async function fetchVisitPage(ctx, page) {
+            const ids = await pageLeadIds(ctx, page); if (!ids.length) return [];
+            const [rows, schol] = await Promise.all([hydrateVisitRows(ids), fetchScholAggregates(ids)]);
+            const byId = {}; rows.forEach(r => byId[r.lead_id] = r);
+            const w = ctx.visitWin, out = [];
+            ids.forEach(id => {
+                const r = { ...(byId[id] || { lead_id: id }), ...(schol[id] || {}) };
+                const todayDone = v => inWin(v, [DATES.TODAY_S, DATES.TODAY_E]);
+                const entries = [];
+                if (inWin(r.bv_book, w)) entries.push({ vtype: 'Branch', vdate: r.bv_book, vdone: todayDone(r.bv_done), by: r.bv_by, team: bookedTeam(r.bv_by, r.bv_dept) });
+                if (inWin(r.hv_book, w)) entries.push({ vtype: 'Home', vdate: r.hv_book, vdone: todayDone(r.hv_done), by: r.hv_by, team: bookedTeam(r.hv_by, r.hv_dept) });
+                if (!entries.length) entries.push({ vtype: '—', vdate: null, vdone: false, by: '', team: '—' });
+                entries.forEach(e => out.push({ ...r, ...e }));   // both fields in the window → 2 rows
+            });
+            return out;
+        }
+        async function fetchAiPage(ctx, page) {
+            const ids = await pageLeadIds(ctx, page); if (!ids.length) return [];
+            const [rows, schol] = await Promise.all([
+                query(`SELECT id as lead_id, name as lead_name, AESL_PS_ID__c as psid, stage as lead_stage,
+            AESL_Next_Follow_up_date__c as next_followup, AESL_Branch_LK__c.name as branch_name, ${LEAD_OVERALL_REMARKS} as remarks,
+            ${LEAD_AI_QUALIFIED} as ai_dt, last_conversation_date_time as lc, ${LEAD_OWNER_COLS}
+            FROM leads_object WHERE id IN (${inList(ids)}) LIMIT ${ids.length} OFFSET 0`, 'leads_object'),
+                fetchScholAggregates(ids)]);
+            const byId = {}; rows.forEach(r => byId[r.lead_id] = r);
+            return ids.map(id => ({ ...(byId[id] || { lead_id: id }), ...(schol[id] || {}) }));
+        }
+
+        const SCHOL_CELLS = r => `<td>${r.iacstReg ? 'Yes' : '—'}</td><td>${r.iacstPct == null ? '—' : r.iacstPct + '%'}</td><td>${r.anthePct == null ? '—' : r.anthePct + '%'}</td><td>${remarksCell(r)}</td>`;
+        const OWNER_CELLS = r => `<td>${r.owner_name || r.owner_email || '—'}</td><td>${r.owner_branch || '—'}</td><td>${r.rsgh || '—'}</td>`;
+        const storeRemarks = leads => { window._remarksStore = {}; leads.forEach(r => { window._remarksStore[r.lead_id] = r.remarks || ''; }); };
+
+        const VISIT_COLS = ['Lead Name', 'PSID', 'Lead Stage', 'Next Follow Up', 'Branch', 'Type of Visit', 'Visit for Date Time', 'Visit Done Status', 'Booked By', 'Booked By Team', 'iACST 27 Registered', 'iACST 27 Highest %', 'ANTHE 27 Highest %', 'Overall Remarks', 'Lead Owner', 'Lead Owner Branch', 'Lead Owner RSGH'];
+        const AI_COLS = ['Lead Name', 'PSID', 'Lead Stage', 'Next Follow Up', 'Branch', 'Call Back Requested Date', 'Called?', 'iACST 27 Registered', 'iACST 27 Highest %', 'ANTHE 27 Highest %', 'Overall Remarks', 'Lead Owner', 'Lead Owner Branch', 'Lead Owner RSGH'];
+        const NO_ROWS = '<div style="padding:20px;text-align:center;color:#6b7280">No leads found.</div>';
+
+        function renderVisitTable(leads) {
+            if (!leads.length) return NO_ROWS; storeRemarks(leads);
+            return `<table><thead><tr>${VISIT_COLS.map(c => `<th>${c}</th>`).join('')}</tr></thead><tbody>${leads.map(r => `<tr>
+        <td>${leadLink(r)}</td><td>${r.psid || '—'}</td><td>${r.lead_stage || '—'}</td><td>${fmtDate(r.next_followup)}</td><td>${r.branch_name || '—'}</td>
+        <td>${r.vtype}</td><td>${fmtDT(r.vdate)}</td><td>${r.vdone ? 'Yes' : 'No'}</td><td>${r.by || '—'}</td><td>${r.team}</td>
+        ${SCHOL_CELLS(r)}${OWNER_CELLS(r)}</tr>`).join('')}</tbody></table>`;
+        }
+        function renderAiTable(leads) {
+            if (!leads.length) return NO_ROWS; storeRemarks(leads);
+            return `<table><thead><tr>${AI_COLS.map(c => `<th>${c}</th>`).join('')}</tr></thead><tbody>${leads.map(r => `<tr>
+        <td>${leadLink(r)}</td><td>${r.psid || '—'}</td><td>${r.lead_stage || '—'}</td><td>${fmtDate(r.next_followup)}</td><td>${r.branch_name || '—'}</td>
+        <td>${fmtDT(r.ai_dt)}</td><td>${Number(r.lc) > Number(r.ai_dt) ? 'YES' : 'NO'}</td>
+        ${SCHOL_CELLS(r)}${OWNER_CELLS(r)}</tr>`).join('')}</tbody></table>`;
+        }
+
+        async function renderDrillPage() {
+            const body = document.getElementById('modal-body-content'), pager = document.getElementById('drill-pager');
+            body.innerHTML = '<div class="loader"></div>'; pager.style.display = 'none';
+            try {
+                const FETCH = { lead: fetchLeadPage, schol: fetchScholPage, visit: fetchVisitPage, ai: fetchAiPage };
+                const RENDER = { lead: renderDrilldownTable, schol: renderScholDrilldownTable, visit: renderVisitTable, ai: renderAiTable };
+                if (!_drill.cache[_drill.page]) _drill.cache[_drill.page] = await FETCH[_drill.kind](_drill.ctx, _drill.page);
+                const rows = _drill.cache[_drill.page];
+                body.innerHTML = RENDER[_drill.kind](rows);
+                pager.innerHTML = drillPager(); pager.style.display = 'flex';
+            } catch (e) { console.error(e); body.innerHTML = '<div style="padding:20px;color:#991b1b">Failed to load lead details.</div>'; }
+        }
+
+        function drillPager() {
+            const total = _drill.total, pages = Math.max(1, Math.ceil(total / DRILL_PAGE)), start = _drill.page * DRILL_PAGE;
+            return `<button class="btn-reset" id="drill-prev" ${_drill.page === 0 ? 'disabled' : ''}><i class="fas fa-chevron-left"></i> Prev</button>
+        <span style="font-size:12px;color:#6b7280">${total ? start + 1 : 0}–${Math.min(start + DRILL_PAGE, total)} of ${fmtN(total)} · Page ${_drill.page + 1}/${pages}</span>
+        <button class="btn-reset" id="drill-next" ${_drill.page >= pages - 1 ? 'disabled' : ''}>Next <i class="fas fa-chevron-right"></i></button>`;
+        }
+        const remarksCell = r => r.remarks ? `<div class="remarks" title="Click to view" onclick="openRemarks('${r.lead_id}')">${escapeHtml(r.remarks).replace(/&lt;br\s*\/?&gt;/gi, ' ')}</div>` : '—';
+        const leadLink = r => `<a href="${BASE_URL}/leads_object/records/${r.lead_id}" target="_blank" style="color:#175259;text-decoration:underline">${escapeHtml(r.lead_name || 'Open')}</a>`;
+
+        function renderDrilldownTable(leads) {
+            if (!leads.length) return '<div style="padding:20px;text-align:center;color:#6b7280">No leads found.</div>';
+            window._remarksStore = {}; leads.forEach(r => { window._remarksStore[r.lead_id] = r.remarks || ''; });
+            return `<table><thead><tr>${DRILL_COLS.map(c => `<th>${c}</th>`).join('')}</tr></thead><tbody>${leads.map(r => `<tr>
+        <td>${leadLink(r)}</td><td>${r.psid || '—'}</td><td>${r.lead_stage || '—'}</td>
+        <td>${fmtDate(r.next_followup)}</td><td>${r.next_fu_mode || '—'}</td><td>${r.class_studying || '—'}</td><td>${r.branch_name || '—'}</td>
+        <td>${r.iacstReg ? 'Yes' : 'No'}</td><td>${r.iacstPct == null ? '—' : r.iacstPct + '%'}</td><td>${r.anthePct == null ? '—' : r.anthePct + '%'}</td>
+        <td>${remarksCell(r)}</td><td>${fmtDate(r.bv_book)}</td><td>${fmtDate(r.bv_done)}</td><td>${fmtDate(r.hv_book)}</td><td>${fmtDate(r.hv_done)}</td>
+        <td>${r.owner_name || r.owner_email || '—'}</td><td>${r.supervisor || '—'}</td><td>${r.rsgh || '—'}</td></tr>`).join('')}</tbody></table>`;
+        }
+        function renderScholDrilldownTable(leads) {
+            if (!leads.length) return '<div style="padding:20px;text-align:center;color:#6b7280">No leads found.</div>';
+            window._remarksStore = {}; leads.forEach(r => { window._remarksStore[r.lead_id] = r.remarks || ''; });
+            const elig = r => (r.eligible === '' || r.eligible == null) ? '—' : Number(r.eligible) + '%';
+            return `<table><thead><tr>${S2_DRILL_COLS.map(c => `<th>${c}</th>`).join('')}</tr></thead><tbody>${leads.map(r => `<tr>
+        <td>${leadLink(r)}</td><td>${r.psid || '—'}</td><td>${r.lead_stage || '—'}</td>
+        <td>${fmtDate(r.next_followup)}</td><td>${r.next_fu_mode || '—'}</td>
+        <td>${r.roll || '—'}</td><td>${r.origin || '—'}</td><td>${r.mode || '—'}</td><td>${fmtDate(r.schol_created)}</td><td>${r.exam_type || '—'}</td>
+        <td>${r.schol_branch || '—'}</td><td>${r.class_studying || '—'}</td><td>${r.school_name || '—'}</td><td>${r.term || '—'}</td>
+        <td>${fmtDate(r.appear_date)}</td><td>${elig(r)}</td><td>${remarksCell(r)}</td>
+        <td>${r.owner_name || r.owner_email || '—'}</td><td>${r.supervisor || '—'}</td><td>${r.rsgh || '—'}</td></tr>`).join('')}</tbody></table>`;
+        }
+        async function exportAllDrill() {
+            const btn = document.getElementById('modal-export'), old = btn.innerHTML;
+            btn.disabled = true; btn.innerHTML = 'Preparing file…';
+            try { await exportViaApi(buildExportSql(_drill.ctx, _drill.kind), _drill.label.replace(/[^a-z0-9]/gi, '_')); }
+            catch (e) { console.error(e); alert('Export failed: ' + e.message); }
+            finally { btn.disabled = false; btn.innerHTML = old; }
+        }
+        function remarksToHtml(s) { return s ? escapeHtml(s).replace(/&lt;br\s*\/?&gt;/gi, '<br>') : '<span style="color:#9ca3af">No remarks.</span>'; }
+        function openRemarks(id) { document.getElementById('remarks-content').innerHTML = remarksToHtml(window._remarksStore[id]); document.getElementById('remarks-modal').classList.add('active'); }
+
+        // ═══════════════════════════════════════════════════════════════
+        // BREAKDOWN TABLES (shared by 01B and 02b)
+        // ═══════════════════════════════════════════════════════════════
+        const userAttrs = u => ({ rsgh: u.team_sales_head || '', owner_branch: u.user_branch_name_user_management_ || '', owner_name: u.name || '', owner_email: u.email || '' });
+
+        // owner rows → user rows + RSGH→Branch roll-up (exact: each lead has one owner)
+        function rollupOwners(ownerRows, byId, metrics) {
+            const userRows = ownerRows.map(r => ({ ...r, ...userAttrs(byId[r.oid] || {}) }))
+                .sort((a, b) => (a.rsgh + '|' + a.owner_branch + '|' + a.owner_name).localeCompare(b.rsgh + '|' + b.owner_branch + '|' + b.owner_name));
+            const brMap = new Map();
+            userRows.forEach(r => {
+                const k = `${r.rsgh}|||${r.owner_branch}`;
+                if (!brMap.has(k)) { const row = { rsgh: r.rsgh, owner_branch: r.owner_branch, _oids: [] }; metrics.forEach(m => row[m.key] = 0); brMap.set(k, row); }
+                const row = brMap.get(k);
+                metrics.forEach(m => row[m.key] += r[m.key] || 0);
+                row._oids.push(r.oid);
+            });
+            return { branchRows: [...brMap.values()], userRows };
+        }
+
+        function buildBreakdownTable(rows, getters, labels, scope, tbl, whereGetter, metrics, hl) {
+            _bdWhere[scope][tbl] = [];
+            const totals = {}; metrics.forEach(m => totals[m.key] = 0);
+            const cls = i => i === 0 ? 'sc1' : i === 1 ? 'sc2' : i === 2 ? 'sc3' : '';
+            const hc = m => m.key === hl ? ' hl' : '';
+            const body = rows.map(r => {
+                const ri = _bdWhere[scope][tbl].push(whereGetter(r)) - 1;
+                const fixed = getters.map((g, i) => { const v = escapeHtml(g(r) || '—'); return `<td class="lbl ${cls(i)}" title="${v}">${v}</td>`; }).join('');
+                const cells = metrics.map(m => {
+                    const n = Number(r[m.key]) || 0; totals[m.key] += n;
+                    return n ? `<td class="drillable${hc(m)}" data-scope="${scope}" data-tbl="${tbl}" data-ri="${ri}" data-metric="${m.key}">${fmtN(n)}</td>` : `<td class="zero${hc(m)}">0</td>`;
+                }).join('');
+                return `<tr>${fixed}${cells}</tr>`;
+            }).join('');
+            const th = labels.map((c, i) => `<th class="lbl ${cls(i)}">${c}</th>`).join('') + metrics.map(m => `<th class="${m.key === hl ? 'hl' : ''}">${m.label}</th>`).join('');
+            const totFixed = labels.map((c, i) => `<td class="lbl ${cls(i)}">${i === 0 ? 'TOTAL' : ''}</td>`).join('');
+            const totCells = metrics.map(m => totals[m.key] ? `<td class="drillable${hc(m)}" data-scope="${scope}" data-tbl="${tbl}" data-ri="-1" data-metric="${m.key}">${fmtN(totals[m.key])}</td>` : `<td>0</td>`).join('');
+            return `<thead><tr>${th}</tr></thead><tbody>${body}<tr class="total-row">${totFixed}${totCells}</tr></tbody>`;
+        }
+        function renderBreakdownInto(ids, scope, branchRows, userRows, metrics, hl) {
+            // drill WHEREs filter on the bare owner FK — index-friendly, no user join
+            document.getElementById(ids.branch).innerHTML = buildBreakdownTable(branchRows, [r => r.rsgh, r => r.owner_branch], ['RSGH', 'Branch'], scope, 'branch',
+                r => r._oids.length ? `owner IN (${sq(r._oids)})` : '1 = 0', metrics, hl);
+            document.getElementById(ids.user).innerHTML = buildBreakdownTable(userRows, [r => r.rsgh, r => r.owner_branch, r => r.owner_name || r.owner_email], ['RSGH', 'Branch', 'Owner'], scope, 'user',
+                r => `owner IN (${sq([r.oid])})`, metrics, hl);
+        }
+
+        // GROUP BY the bare owner FK (join-free), map owner → RSGH/branch/name client-side
+        async function loadUserMap() {
+            if (_userMap) return _userMap;
+            const cached = metaGet('usermap'); if (cached) return (_userMap = cached);
+            const m = {}; let off = 0; const lim = 5000;
+            while (true) {
+                const rows = await query(`SELECT id, name, email, team_supervisor, team_sales_head, user_branch_name_user_management_ FROM user ORDER BY id ASC LIMIT ${lim} OFFSET ${off}`, 'user');
+                rows.forEach(u => { if (u.id) m[u.id] = u; });
+                if (rows.length < lim) break; off += lim;
+            }
+            metaSet('usermap', m); return (_userMap = m);
+        }
+        const ownerRowsFrom = rows => rows.map(r => ({ ...normalizeRow(r, S1_KEYS), oid: r.oid }));
+
+        async function fetchBreakdown() {
+            const byId = await loadUserMap(), inv = invContextWithScope();
+            let ownerRows;
+            if (inv) {
+                const p = inv.L ? inv.L + '.' : '';
+                ownerRows = ownerRowsFrom(await query(`SELECT ${p}owner as oid, ${aggCols(inv.idCol, inv.L, METRICS, false)} FROM ${inv.from} WHERE ${inv.where} GROUP BY ${p}owner ORDER BY ${p}owner ASC LIMIT 20000 OFFSET 0`, inv.from));
+            } else {
+                const { parts, results } = await runIE(aggCols('id', '', METRICS, false), true);
+                const acc = {};
+                results.forEach((rows, i) => rows.forEach(r => {
+                    if (!r.oid) return;
+                    const n = normalizeRow(r, S1_KEYS);
+                    if (!acc[r.oid]) { acc[r.oid] = { oid: r.oid }; METRICS.forEach(m => acc[r.oid][m.key] = 0); }
+                    METRICS.forEach(m => acc[r.oid][m.key] += parts[i].sign * (n[m.key] || 0));
+                }));
+                ownerRows = Object.values(acc).map(r => { METRICS.forEach(m => { if (r[m.key] < 0) r[m.key] = 0; }); return r; }).filter(r => METRICS.some(m => r[m.key] > 0));
+            }
+            return rollupOwners(ownerRows, byId, METRICS);
+        }
+
+        // ═══════════════════════════════════════════════════════════════
+        // SECTION 02 — SCHOLARSHIP FUNNEL
+        // ═══════════════════════════════════════════════════════════════
+        const S2_COH = { iacst: { lt: ['iACST'], term: '2728', name: 'IACST' }, anthe: { lt: ANTHE_TYPES, term: '2627', name: 'ANTHE + AKTHE', needRoll: true } };
+        const S2_TYPE_LABEL = { taken: 'Test Takers', registered: 'Registered · Test Not Taken', overall: 'Overall (Registered + Test Taken)' };
+
+        const S2_EL = `${REL_SCHOL}.associated_result.${RESULT_ELIGIBLE}`;
+        // The three tables per panel (rows = segments, columns = S2_METRICS)
+        const S2_TABLES = [
+            {
+                key: 'origin', title: 'By Origin', totalRow: { key: 'tot', label: 'Total', pred: '1 = 1' }, rows: [
+                    { key: 'upload', label: 'Upload', pred: `${REL_SCHOL}.superleap_origin = 'Upload'` },
+                    { key: 'digital', label: 'Digital', pred: `${REL_SCHOL}.superleap_origin = 'API'` },
+                    { key: 'self', label: 'Self', pred: `${REL_SCHOL}.superleap_origin = 'Forms'` },
+                ]
+            },
+            {
+                key: 'range', title: 'By Scholarship %', needsResult: true, totalRow: { key: 'tot', label: 'Total', pred: `${S2_EL} IS NOT NULL` }, rows: [
+                    { key: 'r90', label: '>=90%', pred: `${S2_EL} >= 90` },
+                    { key: 'r60', label: '>=60% to <90%', pred: `${S2_EL} >= 60 AND ${S2_EL} < 90` },
+                    { key: 'r35', label: '>=35% to <60%', pred: `${S2_EL} >= 35 AND ${S2_EL} < 60` },
+                    { key: 'r0p', label: '>0% to <35%', pred: `${S2_EL} > 0 AND ${S2_EL} < 35` },
+                    { key: 'r0', label: '0%', pred: `${S2_EL} = 0` },
+                ]
+            },
+            {
+                key: 'school', title: 'By School Category', totalRow: { key: 'tot', label: 'Total', pred: '1 = 1' }, rows: [
+                    { key: 'a', label: 'Category A', pred: `${SCHOOL_CAT_FIELD} = '${SCHOOL_CAT_A}'` },
+                    { key: 'others', label: 'Category Others', pred: `(${SCHOOL_CAT_FIELD} IS NULL OR ${SCHOOL_CAT_FIELD} <> '${SCHOOL_CAT_A}')` },
+                ]
+            },
+        ];
+        const s2Rows = t => [...t.rows, t.totalRow];
+
+        // Scholarship Range filter (10%-wide bands) — applies to the result's eligible %
+        function schRangeWhere() {
+            const f = S2_EL, v = state.schRange;
+            if (v === 'zero') return `${f} = 0`;
+            if (v === 'gte90') return `${f} > 90`;
+            const m = /^(\d+)to(\d+)$/.exec(v);
+            return m ? `${f} > ${m[1]} AND ${f} <= ${m[2]}` : '';
+        }
+        function appearedWhere() {
+            const r = dateRange(state.appeared); if (!r) return '';
+            return `${REL_SCHOL}.associated_result.created_at >= ${r[0]} AND ${REL_SCHOL}.associated_result.created_at <= ${r[1]}`;
+        }
+        // scholarship-row predicates for one exam cohort (also reused to restrict the hydrated drill-down rows)
+        function s2ScholParts(coh) {
+            const c = S2_COH[coh], S = REL_SCHOL, parts = [typePred(`${S}.AESL_Lead_Type__c`, c.lt), levelPred(`${S}.AESL_Level__c`, c.term)];
+            if (state.s2type === 'taken') parts.push(`${S2_EL} IS NOT NULL`);
+            else if (state.s2type === 'registered') parts.push(`${S2_EL} IS NULL`);
+            if (state.s2type !== 'registered') parts.push(schRangeWhere(), appearedWhere());
+            if (state.s2branch.length) parts.push(`${S}.AESL_Branch_LK_c.name IN (${sq(state.s2branch)})`);
+            if (state.origin.length) parts.push(`${S}.superleap_origin IN (${sq(state.origin)})`);
+            if (state.s2class.length) parts.push(`${S}.AESL_Class_Studying_In__c IN (${sq(state.s2class)})`);
+            if (c.needRoll) parts.push(rollOk(`${S}.${SCHOL_ROLL_NUMBER}`));
+            return parts.filter(Boolean);
+        }
+        const STAGE_GROUPS = {
+            untouched: [STAGE.UNTOUCHED],
+            ncb: [STAGE.NOT_CONNECTED, STAGE.CALL_BACK],
+            qualified: QUALIFIED_STAGES,
+            junk: [STAGE.NOT_INTERESTED, STAGE.NOT_ELIGIBLE],
+            admission: [STAGE.ADMISSION_DONE],
+        };
+        function s2LeadParts() {
+            const parts = [];
+            if (state.s2school.length) parts.push(`AESL_School_Name__c.name IN (${sq(state.s2school)})`);
+            if (state.s2stage.length) parts.push(`stage IN (${sq(state.s2stage.flatMap(k => STAGE_GROUPS[k] || []))})`);
+            return parts;
+        }
+        function s2CohortWhere(coh) {
+            return and(...s2ScholParts(coh), leadScopeWhere(''), ...idSetParts('id'), ...idSetParts('id', _s2qSet, _s2vSet), ...s2LeadParts());
+        }
+        async function prepareS2Sets() {
+            const key = state.s2qual + '|' + state.s2visit + '|' + JSON.stringify(state.rsgh);
+            if (key === _s2SetsKey) return;
+            [_s2qSet, _s2vSet] = await Promise.all([dispositionLeadIds(state.s2qual, QUAL_DISP_PRED), dispositionLeadIds(state.s2visit, VISIT_DISP_PRED)]);
+            _s2SetsKey = key;
+        }
+
+        // One aggregate query: every (row × column) cell of the given tables as DISTINCT-lead counts
+        async function fetchS2Group(coh, tbls) {
+            const MP = metricPreds(''), cols = [], idx = [];
+            tbls.forEach((t, ti) => s2Rows(t).forEach((r, ri) => S2_METRICS.forEach(m => {
+                const a = `c_${ti}_${ri}_${m.key.toLowerCase()}`;
+                cols.push(`COUNT(DISTINCT CASE WHEN ${and(r.pred, m.key === 'total' ? '' : MP[m.key])} THEN id END) as ${a}`);
+                idx.push([a, t.key, r.key, m.key]);
+            })));
+            const raw = (await query(`SELECT ${cols.join(', ')} FROM leads_object WHERE ${s2CohortWhere(coh)} LIMIT 1 OFFSET 0`, 'leads_object'))[0] || {};
+            const lc = {}; Object.keys(raw).forEach(k => lc[k.toLowerCase()] = raw[k]);
+            const out = {}; idx.forEach(([a, tk, rk, mk]) => { out[`${tk}|${rk}|${mk}`] = Number(lc[a]) || 0; });
+            return out;
+        }
+
+        function s2TableHtml(coh, t, p) {
+            const st = t.key === 'school' ? p.schoolState : (t.needsResult && p.type === 'registered' ? 'na' : p.groupState);
+            const head = `<tr><th class="t">${t.title}</th>${S2_METRICS.map(m => `<th title="${m.full}">${m.label}</th>`).join('')}</tr>`;
+            let body;
+            if (st === 'loading') body = `<tr><td class="msg" colspan="7"><div class="loader" style="margin:6px auto;width:22px;height:22px"></div></td></tr>`;
+            else if (st === 'err') body = `<tr><td class="msg err" colspan="7">${escapeHtml(t.key === 'school' ? 'Could not load — check SCHOOL_CAT_FIELD config. ' + (p.schoolMsg || '') : (p.groupMsg || 'Failed to load'))}</td></tr>`;
+            else if (st === 'na') body = `<tr><td class="msg" colspan="7">Scholarship % exists only for test takers — not applicable for “Only Registered”.</td></tr>`;
+            else body = s2Rows(t).map(r => `<tr${r.key === 'tot' ? ' class="trow"' : ''}><td class="rl">${r.label}</td>${S2_METRICS.map(m => {
+                const v = p.counts[`${t.key}|${r.key}|${m.key}`] || 0;
+                const sel = s2Sel && s2Sel.coh === coh && s2Sel.tbl === t.key && s2Sel.row === r.key && s2Sel.met === m.key;
+                return v ? `<td class="cell${sel ? ' sel' : ''}" data-coh="${coh}" data-tbl="${t.key}" data-row="${r.key}" data-met="${m.key}">${fmtN(v)}</td>` : `<td class="zero">0</td>`;
+            }).join('')}</tr>`).join('');
+            const cols = `<colgroup><col style="width:25%">${S2_METRICS.map(() => '<col style="width:12.5%">').join('')}</colgroup>`;
+            return `<div class="s2-tblwrap"><table class="s2-tbl">${cols}<thead>${head}</thead><tbody>${body}</tbody></table></div>`;
+        }
+        function renderS2Panel(coh) {
+            const p = s2Data[coh], c = S2_COH[coh], el = document.getElementById('panel-' + coh); if (!p) return;
+            el.innerHTML = `<div class="s2-ph"><span class="s2-badge ${coh}">${c.name} ${S2_TYPE_LABEL[p.type]}</span><span class="s2-term">· Term ${c.term}</span></div>`
+                + S2_TABLES.map(t => s2TableHtml(coh, t, p)).join('');
+        }
+        function showS2Placeholder() {
+            const html = `<div class="panel-empty"><div>Click below to load the scholarship funnel (takes about 20 seconds).</div>
+            <button class="btn-apply s2-load-btn"><i class="fas fa-table"></i> Load data</button></div>`;
+            document.getElementById('panel-iacst').innerHTML = html;
+            document.getElementById('panel-anthe').innerHTML = html;
+        }
+
+        // initial=true → skeleton; false → refresh in place (dimmed) so the layout never jumps
+        async function loadSection2(initial) {
+            readState(); await ensureSelfId();
+            const panels = { iacst: document.getElementById('panel-iacst'), anthe: document.getElementById('panel-anthe') };
+            const ck = s2CacheKey(), cached = capCacheGet(ck);
+            if (cached) {
+                ['iacst', 'anthe'].forEach(k => { s2Data[k] = { ...cached[k], type: cached.type, groupState: 'ok', schoolState: 'ok' }; renderS2Panel(k); panels[k].classList.remove('refreshing'); });
+                return;
+            }
+            const type = state.s2type;
+            ['iacst', 'anthe'].forEach(k => {
+                s2Data[k] = { type, counts: {}, groupState: 'loading', schoolState: 'loading', groupMsg: '', schoolMsg: '' };
+                if (initial) renderS2Panel(k); else panels[k].classList.add('refreshing');
+            });
+
+            try { await prepareS2Sets(); }
+            catch (e) {
+                console.error(e);
+                ['iacst', 'anthe'].forEach(k => {
+                    Object.assign(s2Data[k], { groupState: 'err', schoolState: 'err', groupMsg: 'Could not load Qualified / Visit Done leads: ' + e.message, schoolMsg: e.message });
+                    renderS2Panel(k); panels[k].classList.remove('refreshing');
+                });
+                return;
+            }
+
+
+
+
+            const groupTbls = S2_TABLES.filter(t => t.key !== 'school' && !(t.needsResult && type === 'registered'));
+            const schoolTbl = S2_TABLES.filter(t => t.key === 'school');
+            const job = (coh, which) => async () => {
+                const p = s2Data[coh];
+                try { Object.assign(p.counts, await fetchS2Group(coh, which === 'group' ? groupTbls : schoolTbl)); p[which + 'State'] = 'ok'; }
+                catch (e) { console.error('Section 2 ' + which + ' failed', e); p[which + 'State'] = 'err'; p[which + 'Msg'] = e.message; }
+                renderS2Panel(coh); panels[coh].classList.remove('refreshing');
+            };
+            // small ANTHE cohort first; conc 2 (heavy scans degrade under parallelism)
+            await runPool([job('anthe', 'group'), job('iacst', 'group'), job('anthe', 'school'), job('iacst', 'school')], 2);
+            const ok = ['iacst', 'anthe'].every(k => s2Data[k].groupState === 'ok' && s2Data[k].schoolState === 'ok');
+            if (ok) capCacheSet(ck, { t: Date.now(), type, iacst: { counts: s2Data.iacst.counts, type }, anthe: { counts: s2Data.anthe.counts, type } });
+        }
+        async function tryRestoreSectionCaches() {
+            try {
+                await ensureSelfId();
+                if (!_s1bRendered && !_s1bLoading) {
+                    const bp = capCacheGet(breakdownCacheKey());
+                    if (bp) {
+                        renderBreakdownInto({ branch: 'branch-table', user: 'user-table' }, 's1', bp.branchRows, bp.userRows, METRICS);
+                        _s1bRendered = true;
+                        ['branch-slot', 'user-slot'].forEach(i => document.getElementById(i).style.display = 'none');
+                        ['branch-table', 'user-table'].forEach(i => document.getElementById(i).style.display = '');
+                    }
+                }
+                if (!_s2Rendered && !_s2Loading) {
+                    const p = capCacheGet(s2CacheKey());
+                    if (p) { ['iacst', 'anthe'].forEach(k => { s2Data[k] = { ...p[k], type: p.type, groupState: 'ok', schoolState: 'ok' }; renderS2Panel(k); }); _s2Rendered = true; }
+                }
+            } catch (e) { }
+        }
+        async function loadSection2Once() {
+            if (_s2Rendered || _s2Loading) return;
+            _s2Loading = true;
+            try { await loadSection2(true); } catch (e) { console.error(e); }   // per-table error rows are shown inline
+            _s2Rendered = true; _s2Loading = false;
+        }
+        async function reloadSection2() {
+            if (!_s2Rendered) return;
+            clearS2Selection();
+            try { await loadSection2(false); } catch (e) { console.error(e); }
+        }
+
+        function s2Dirty(on) { document.getElementById('s2-dirty').style.display = on ? 'inline-flex' : 'none'; }
+
+        // One button runs the scholarship funnel: first load if nothing is loaded yet, otherwise refresh in place
+        async function applyS2() {
+            if (_s2Loading) return;
+            const btn = document.getElementById('s2-apply-btn');
+            btn.disabled = true; s2Dirty(false);
+            try {
+                if (!_s2Rendered) await loadSection2Once();
+                else await reloadSection2();
+            } finally { btn.disabled = false; }
+        }
+
+        // Branch options come from the SCHOLARSHIP object (not the lead's branch); lazy + cached 1h
+        async function loadS2Branches() {
+            if (_s2BranchesLoaded) return; _s2BranchesLoaded = true;
+            try {
+                let rows = metaGet('s2branches');
+                if (!rows) {
+                    rows = await query(`SELECT DISTINCT AESL_Branch_LK_c.name as v FROM ${SCHOL_OBJECT} WHERE ${typePred('AESL_Lead_Type__c', ['iACST', ...ANTHE_TYPES])} AND ${levelIn('AESL_Level__c', ['2627', '2728'])} ORDER BY v ASC LIMIT 2000 OFFSET 0`, SCHOL_OBJECT);
+                    metaSet('s2branches', rows);
+                }
+                const have = new Set([...document.getElementById('fi-s2branch').querySelectorAll('input[type=checkbox]:not(.select-all)')].map(c => c.value));
+                fillCheckboxDd('fi-s2branch', rows.map(r => r.v).filter(v => v && !have.has(v)).map(v => ({ value: v, name: v })));
+            } catch (e) { _s2BranchesLoaded = false; console.error('Scholarship branch options failed', e); }
+        }
+
+        // "Only Registered" has no result → Scholarship Range / Appeared Date don't apply
+        function syncS2TypeUi() {
+            const reg = getRadio('fi-s2type') === 'registered';
+            ['fi-schrange', 'fi-appeared'].forEach(id => {
+                const el = document.getElementById(id);
+                el.classList.toggle('fi-locked', reg); el.querySelector('.fi-btn').disabled = reg;
+                if (reg) { const r = el.querySelector('input[type=radio][value="all"]'); if (r && !r.checked) { r.checked = true; updateFbt(id); } }
+            });
+        }
+
+        // ── Section 02b: breakdown for the clicked table cell ──
+        function s2SegDef(sel) {
+            const t = S2_TABLES.find(x => x.key === sel.tbl), r = s2Rows(t).find(x => x.key === sel.row);
+            return { pred: r.pred, label: `${t.title} · ${r.label}` };
+        }
+        // Total column → lead list (same drill-down + export as everywhere else)
+        // Opens the lead list for a clicked cell: the row's segment, narrowed by the clicked column (if it isn't Total)
+        function openS2Drill(sel, total) {
+            const seg = s2SegDef(sel), c = S2_COH[sel.coh], m = S2_METRICS.find(x => x.key === sel.met);
+            const where = and(s2CohortWhere(sel.coh), seg.pred, sel.met === 'total' ? '' : metricPreds()[sel.met]);
+            // const ctx = { from: 'leads_object', L: '', where, exportWhere: where, hydrateExtra: and(...s2ScholParts(sel.coh), seg.pred) };
+            const extra = and(...s2ScholParts(sel.coh), seg.pred);
+            const ctx = { from: 'leads_object', L: '', where, exportWhere: and(where, extra), hydrateExtra: extra };
+            openDrill(ctx, total, `${c.name} · ${seg.label} · ${m.label}`, 'schol');
+        }
+
+        function s2SelLabel(sel) {
+            const c = S2_COH[sel.coh];
+            return `${c.name} · Term ${c.term} · ${S2_TYPE_LABEL[state.s2type]} · ${s2SegDef(sel).label} · ${S2_METRICS.find(m => m.key === sel.met).label}`;
+        }
+        function clearS2Selection() {
+            s2Sel = null; _s2bReq++;
+            document.getElementById('s2b-head').style.display = 'none';
+            document.getElementById('s2b-body').style.display = 'none';
+            ['iacst', 'anthe'].forEach(k => { if (s2Data[k]) renderS2Panel(k); });
+        }
+        async function fetchS2Breakdown(sel) {
+            const byId = await loadUserMap();
+            const where = and(s2CohortWhere(sel.coh), s2SegDef(sel).pred);
+            const rows = await query(`SELECT owner as oid, ${aggCols('id', '', S2_METRICS, false)} FROM leads_object WHERE ${where} GROUP BY owner ORDER BY owner ASC LIMIT 20000 OFFSET 0`, 'leads_object');
+            return rollupOwners(rows.map(r => ({ ...normalizeRow(r, S2_KEYS), oid: r.oid })), byId, S2_METRICS);
+        }
+        async function loadS2Breakdown() {
+            const sel = s2Sel; if (!sel) return;
+            readState();
+            const req = ++_s2bReq;
+            const head = document.getElementById('s2b-head'), body = document.getElementById('s2b-body'), err = document.getElementById('s2b-err');
+            head.style.display = 'block'; body.style.display = 'flex'; document.getElementById('s2b-chevron').style.transform = 'rotate(180deg)';
+            document.getElementById('s2b-sel').textContent = s2SelLabel(sel);
+            err.style.display = 'none';
+            ['s2b-branch-table', 's2b-user-table'].forEach(i => document.getElementById(i).innerHTML = '');
+            ['s2b-branch-loader', 's2b-user-loader'].forEach(i => document.getElementById(i).style.display = 'block');
+            head.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            try {
+                await prepareS2Sets();
+                await ensureSelfId();
+                const key = 's2b' + hashStr(s2CacheKey() + JSON.stringify(sel));
+                let rows = capCacheGet(key);
+                if (!rows) {
+                    rows = await fetchS2Breakdown(sel);
+                    const payload = { t: Date.now(), branchRows: rows.branchRows, userRows: rows.userRows };
+                    if (JSON.stringify(payload).length < 2000000) capCacheSet(key, payload);
+                }
+                if (req !== _s2bReq) return;
+                renderBreakdownInto({ branch: 's2b-branch-table', user: 's2b-user-table' }, 's2', rows.branchRows, rows.userRows, S2_METRICS, sel.met);
+            } catch (e) {
+                if (req !== _s2bReq) return;
+                console.error('Section 02b failed', e); err.style.display = 'block'; err.textContent = 'Breakdown failed: ' + e.message;
+            } finally {
+                if (req === _s2bReq) ['s2b-branch-loader', 's2b-user-loader'].forEach(i => document.getElementById(i).style.display = 'none');
+            }
+        }
+
+        // ═══════════════════════════════════════════════════════════════
+        // PROGRESS
+        // ═══════════════════════════════════════════════════════════════
+        function initProgress(steps) {
+            document.getElementById('progress-wrap').style.display = 'block';
+            document.getElementById('progress-steps').innerHTML = steps.map(s => `<span class="progress-step" id="ps-${s.key}">${s.label}</span>`).join('');
+            setProgress(0);
+        }
+        function setStep(key, st) { const el = document.getElementById('ps-' + key); if (el) el.className = 'progress-step ' + st; }
+        function setProgress(p) {
+            document.getElementById('progress-fill').style.width = p + '%';
+            document.getElementById('progress-pct').textContent = p + '%';
+            document.getElementById('progress-text').textContent = p < 100 ? 'Loading…' : 'Done ✓';
+        }
+
+        // ═══════════════════════════════════════════════════════════════
+        // FILTER DROPDOWN PLUMBING
+        // ═══════════════════════════════════════════════════════════════
+        const DEFAULTS = {
+            'fi-rd': 'All RDs', 'fi-rsgh': 'All RSGHs', 'fi-branch': 'All Branches', 'fi-tl': 'All TL/Managers', 'fi-owner': 'All Owners',
+            'fi-datemod': 'All Time', 'fi-school': 'All Schools', 'fi-class': 'All Classes', 'fi-qualified': 'All Time', 'fi-visitdone': 'All Time',
+            'fi-type': 'Select lead type', 'fi-s2type': 'Test Taken', 'fi-s2branch': 'All Branches', 'fi-schrange': 'All Scholarship',
+            'fi-appeared': 'All Time', 'fi-origin': 'All Origins', 'fi-s2class': 'All Classes',
+            'fi-s2qual': 'All Time', 'fi-s2visit': 'All Time', 'fi-s2school': 'All Schools', 'fi-s2stage': 'All Stages',
+        };
+        const FILTER_IDS = Object.keys(DEFAULTS);
+        const SINGLE_SELECT = new Set(['fi-type', 'fi-s2type']);
+
+        function setupDropdown(id) {
+            const el = document.getElementById(id); if (!el) return;
+            const btn = el.querySelector('.fi-btn'), dd = el.querySelector('.dd');
+            btn.addEventListener('click', e => {
+                e.stopPropagation();
+                if (state.currentDd && state.currentDd !== dd) state.currentDd.style.display = 'none';
+                const open = dd.style.display === 'block';
+                dd.style.display = open ? 'none' : 'block'; state.currentDd = open ? null : dd;
+            });
+            document.addEventListener('click', e => { if (!el.contains(e.target)) { dd.style.display = 'none'; if (state.currentDd === dd) state.currentDd = null; } });
+            const srch = dd.querySelector('input[type=search]');
+            if (srch) srch.addEventListener('input', () => { const q = srch.value.toLowerCase(); dd.querySelectorAll('label').forEach(l => { if (l.querySelector('.select-all')) return; l.style.display = l.textContent.toLowerCase().includes(q) ? '' : 'none'; }); });
+            const sa = dd.querySelector('.select-all');
+            if (sa) {
+                sa.addEventListener('change', () => { dd.querySelectorAll('input[type=checkbox]:not(.select-all)').forEach(c => c.checked = sa.checked); updateFbt(id); });
+                dd.addEventListener('change', e => { if (e.target !== sa && e.target.type === 'checkbox') { const all = [...dd.querySelectorAll('input[type=checkbox]:not(.select-all)')]; sa.checked = all.length && all.every(c => c.checked); updateFbt(id); } });
+            }
+            dd.addEventListener('change', e => { if (e.target.type === 'radio') { updateFbt(id); if (SINGLE_SELECT.has(id)) dd.style.display = 'none'; } });
+        }
+        function updateFbt(id) {
+            const el = document.getElementById(id), fbt = el.querySelector('.fbt'), btn = el.querySelector('.fi-btn'), dd = el.querySelector('.dd'), sa = dd.querySelector('.select-all');
+            const chk = [...dd.querySelectorAll('input[type=checkbox]:not(.select-all):checked')], radio = dd.querySelector('input[type=radio]:checked');
+            let filled = false;
+            if (radio) { fbt.textContent = radio.parentElement.textContent.trim(); filled = radio.value !== 'all'; }
+            else if (!chk.length || (sa && sa.checked)) { fbt.textContent = DEFAULTS[id]; }
+            else if (chk.length === 1) { fbt.textContent = chk[0].getAttribute('data-name') || chk[0].value; filled = true; }
+            else { fbt.textContent = `${chk.length} selected`; filled = true; }
+            fbt.classList.toggle('ph', !filled); btn.classList.toggle('filled', filled);
+            checkApply();
+            if (id === 'fi-type') updateS1Tag();
+        }
+        function getChecked(id) { return [...document.getElementById(id).querySelectorAll('input[type=checkbox]:not(.select-all):checked')].map(c => c.value); }
+        function getRadio(id) { return document.getElementById(id).querySelector('input[type=radio]:checked')?.value || 'all'; }
+        function fillCheckboxDd(id, items) {
+            const dd = document.getElementById(id).querySelector('.dd'), frag = document.createDocumentFragment();
+            items.forEach(it => {
+                if (!it.value) return;
+                const lbl = document.createElement('label'), cb = document.createElement('input');
+                cb.type = 'checkbox'; cb.value = it.value; cb.setAttribute('data-name', it.name || it.value);
+                lbl.appendChild(cb); lbl.appendChild(document.createTextNode(' ' + (it.name || it.value))); frag.appendChild(lbl);
+            });
+            dd.appendChild(frag);
+        }
+
+        // ── filter option loading ──
+        async function loadUsers() {
+            if (_allUsers) return _allUsers;
+            const cached = metaGet('users'); if (cached) return (_allUsers = cached);
+            let all = [], off = 0; const lim = 5000;
+            while (true) {
+                const rows = await query(`SELECT id, name, email, team_supervisor, team_dept_head, team_sales_head, user_branch_name_user_management_ FROM user WHERE status = 'active' ORDER BY name ASC LIMIT ${lim} OFFSET ${off}`, 'user');
+                all = all.concat(rows); if (rows.length < lim) break; off += lim;
+            }
+            metaSet('users', all); return (_allUsers = all);
+        }
+        const distinct = (users, f) => [...new Set(users.map(u => u[f]).filter(Boolean))].sort((a, b) => a.localeCompare(b));
+        const numSort = (a, b) => String(a).localeCompare(String(b), undefined, { numeric: true, sensitivity: 'base' });
+
+        async function loadFilters() {
+            const users = await loadUsers();
+            const asItems = arr => arr.map(v => ({ value: v, name: v }));
+            fillCheckboxDd('fi-rd', asItems(distinct(users, 'team_dept_head')));
+            fillCheckboxDd('fi-rsgh', asItems(distinct(users, 'team_sales_head')));
+            fillCheckboxDd('fi-branch', asItems(distinct(users, 'user_branch_name_user_management_')));
+            fillCheckboxDd('fi-tl', asItems(distinct(users, 'team_supervisor')));
+            fillCheckboxDd('fi-owner', users.slice().sort((a, b) => (a.name || '').localeCompare(b.name || '')).map(u => ({ value: u.id, name: `${u.name} (${u.email})` })));
+            let [schools, classes] = [metaGet('schools'), metaGet('classes')];
+            [schools, classes] = await Promise.all([
+                schools || query(`SELECT id, name, AESL_School_Code__c as code FROM aesl_school__c ORDER BY name ASC LIMIT 5000 OFFSET 0`, 'aesl_school__c').then(r => (metaSet('schools', r), r)),
+                classes || query(`SELECT name as v FROM aesl_class__c ORDER BY name ASC LIMIT 500 OFFSET 0`, 'aesl_class__c').then(r => (metaSet('classes', r), r)),
+            ]);
+            const schoolItems = schools.map(s => ({ value: s.name, name: s.code ? `${s.name} (${s.code})` : s.name }));
+            fillCheckboxDd('fi-school', schoolItems); fillCheckboxDd('fi-s2school', schoolItems);
+            schools.forEach(s => _loadedSchoolNames.add(s.name));
+            const classItems = asItems(classes.map(c => c.v).sort(numSort));
+            fillCheckboxDd('fi-class', classItems); fillCheckboxDd('fi-s2class', classItems);
+        }
+        async function searchSchools(term) {
+            const t = term.replace(/'/g, "''");
+            const rows = await query(`SELECT id, name, AESL_School_Code__c as code FROM aesl_school__c WHERE name ILIKE '%${t}%' OR AESL_School_Code__c ILIKE '%${t}%' ORDER BY name ASC LIMIT 500 OFFSET 0`, 'aesl_school__c');
+            const fresh = rows.filter(s => s.name && !_loadedSchoolNames.has(s.name));
+            if (fresh.length) {
+                const items = fresh.map(s => ({ value: s.name, name: s.code ? `${s.name} (${s.code})` : s.name }));
+                fillCheckboxDd('fi-school', items); fillCheckboxDd('fi-s2school', items);
+                fresh.forEach(s => _loadedSchoolNames.add(s.name));
+            }
+        }
+
+        // ═══════════════════════════════════════════════════════════════
+        // APPLY / RESET
+        // ═══════════════════════════════════════════════════════════════
+        function readState() {
+            Object.assign(state, {
+                rd: getChecked('fi-rd'), rsgh: getChecked('fi-rsgh'), branch: getChecked('fi-branch'), tl: getChecked('fi-tl'), owner: getChecked('fi-owner'),
+                school: getChecked('fi-school'), class: getChecked('fi-class'), dateMod: getRadio('fi-datemod'), qualified: getRadio('fi-qualified'), visitDone: getRadio('fi-visitdone'),
+                type: document.querySelector('input[name=type]:checked')?.value || null,
+                s2type: getRadio('fi-s2type') === 'all' ? 'taken' : getRadio('fi-s2type'), s2branch: getChecked('fi-s2branch'),
+                schRange: getRadio('fi-schrange'), appeared: getRadio('fi-appeared'), origin: getChecked('fi-origin'), s2class: getChecked('fi-s2class'),
+                s2qual: getRadio('fi-s2qual'), s2visit: getRadio('fi-s2visit'), s2school: getChecked('fi-s2school'), s2stage: getChecked('fi-s2stage'),
+            });
+            if (state.s2type === 'registered') { state.schRange = 'all'; state.appeared = 'all'; }
+        }
+        function updateS1Tag() {
+            const t = document.querySelector('input[name=type]:checked')?.value;
+            document.getElementById('s1-tag').textContent = t ? `(${TYPE_TAGS[t]})` : '';
+        }
+        // at least ONE global filter is mandatory for everyone (also blocks the pathological unfiltered scans)
+        function hasAnyFilterSelection() {
+            return ['fi-rd', 'fi-rsgh', 'fi-branch', 'fi-tl', 'fi-owner', 'fi-school', 'fi-class'].some(id => getChecked(id).length > 0)
+                || ['fi-datemod', 'fi-qualified', 'fi-visitdone'].some(id => getRadio(id) !== 'all');
+        }
+        function checkApply() {
+            const type = !!document.querySelector('input[name=type]:checked'), hasFilter = hasAnyFilterSelection();
+            const ab = document.getElementById('apply-btn');
+            ab.disabled = !(type && hasFilter);
+            ab.title = !hasFilter ? 'Select at least one filter' : (!type ? 'Pick a Type of Leads' : '');
+            const ib = document.getElementById('info-banner');
+            if (ib) {
+                ib.classList.toggle('warn', !hasFilter);
+                ib.innerHTML = hasFilter ? '<i class="fas fa-info-circle"></i> Ready — click Apply &amp; Run.' : '<i class="fas fa-exclamation-circle"></i> Select at least one filter to enable Apply &amp; Run.';
+            }
+        }
+
+        // role-based auto-scoping from /user/me (non-admins cannot widen their scope)
+        function _fiDisable(id) { const el = document.getElementById(id); if (!el) return; el.classList.add('fi-locked'); el.querySelector('.fi-btn').disabled = true; }
+        function _fiCheckValue(id, value) {
+            const dd = document.getElementById(id)?.querySelector('.dd'); if (!dd || !value) return false;
+            const v = String(value).toLowerCase();
+            const cb = [...dd.querySelectorAll('input[type=checkbox]:not(.select-all)')].find(c => c.value.toLowerCase() === v || (c.getAttribute('data-name') || '').toLowerCase() === v);
+            if (!cb) return false;
+            cb.checked = true; updateFbt(id); return true;
+        }
+        async function applyRoleScoping() {
+            try {
+                await ensureSelfId(); if (!_selfInfo) return;
+                const users = _allUsers || [], email = (_selfInfo.email || '').toLowerCase(), name = (_selfInfo.name || '').toLowerCase();
+                const isSuper = _selfInfo.user_type === 'super_admin' || _selfInfo.role_id === 't98xyD_uu2YlFZQ';
+                const matches = f => users.some(u => { const v = (u[f] || '').toLowerCase(); return v && (v === email || v === name); });
+                if (matches('team_dept_head')) { _fiCheckValue('fi-rd', email) || _fiCheckValue('fi-rd', name); if (!isSuper) _fiDisable('fi-rd'); }
+                else if (matches('team_sales_head')) { _fiCheckValue('fi-rsgh', email) || _fiCheckValue('fi-rsgh', name); if (!isSuper) { _fiDisable('fi-rsgh'); _fiDisable('fi-rd'); } }
+                else if (matches('team_supervisor')) { _fiCheckValue('fi-tl', email) || _fiCheckValue('fi-tl', name); if (!isSuper) { _fiDisable('fi-tl'); _fiDisable('fi-rsgh'); _fiDisable('fi-rd'); } }
+                else if (!isSuper) { _fiCheckValue('fi-owner', _selfInfo.id);['fi-owner', 'fi-rd', 'fi-rsgh', 'fi-tl'].forEach(_fiDisable); }
+                checkApply();
+            } catch (e) { }
+        }
+
+        const show = (id, v) => { document.getElementById(id).style.display = v; };
+
+        async function onApply() {
+            readState();
+            // Section 01B — collapsed, "Load data" button reserved
+            _s1bRendered = false;
+            show('breakdown-head', 'block'); show('breakdown-body', 'none');
+            document.getElementById('breakdown-chevron').style.transform = 'rotate(0deg)';
+            ['branch-table', 'user-table'].forEach(i => show(i, 'none'));
+            ['branch-slot', 'user-slot'].forEach(i => show(i, 'flex'));
+            // Section 02 — own coloured box, open, "Load data" button reserved
+            _s2Rendered = false; s2Data = { iacst: null, anthe: null };
+            clearS2Selection();
+            s2Dirty(false);
+            show('box-schol', 'flex'); show('s2-wrap', 'grid'); show('s2-filters', 'flex');
+            document.getElementById('s2-chevron').style.transform = 'rotate(180deg)';
+            showS2Placeholder(); tryRestoreSectionCaches(); loadS2Branches();
+
+            if (!state.type) return;
+            saveLastFilters();
+            show('info-banner', 'none'); show('error-banner', 'none');
+            document.getElementById('apply-btn').disabled = true;
+            const rp = document.getElementById('run-pill'); rp.className = 'run-pill'; rp.textContent = 'Running…';
+            renderCardShells(true);
+            document.getElementById('s1-grid').classList.add('show-funnel'); show('funnel-card', 'block');
+            document.getElementById('funnel').innerHTML = '<div class="loader"></div>';
+            const t0 = performance.now();
+            try {
+                if (HEAVY_TYPES.has(state.type)) {
+                    await runCappedFlow();
+                    rp.className = 'run-pill ran';
+                    rp.textContent = _cardCapped && _cardCapped.size ? `Quick counts · ${((performance.now() - t0) / 1000).toFixed(1)}s` : `${fmtN(_cardCounts.total)} leads · ${((performance.now() - t0) / 1000).toFixed(1)}s`;
+                    setAsOf(_cappedCachedAt || Date.now());
+                } else {
+                    await fetchAll(); renderCards(_cardCounts); renderFunnel(_cardCounts);
+                    rp.className = 'run-pill ran'; rp.textContent = `${fmtN(_cardCounts.total)} leads · ${((performance.now() - t0) / 1000).toFixed(1)}s`;
+                    setAsOf(Date.now());
+                }
+                show('progress-wrap', 'none'); show('refresh-btn', '');
+            } catch (e) {
+                console.error(e);
+                const eb = document.getElementById('error-banner'); eb.style.display = 'block'; eb.textContent = 'Error loading data: ' + e.message;
+                rp.textContent = 'Failed';
+            } finally { checkApply(); }
+        }
+
+        function onReset() {
+            _s1bRendered = false; show('breakdown-head', 'block'); show('breakdown-body', 'none');
+            document.getElementById('breakdown-chevron').style.transform = 'rotate(0deg)';
+            _s2Rendered = false; s2Data = { iacst: null, anthe: null }; clearS2Selection(); show('box-schol', 'none');
+            ['panel-iacst', 'panel-anthe'].forEach(i => document.getElementById(i).innerHTML = '');
+
+            document.querySelectorAll('.topbar input[type=checkbox], #fi-type input[type=radio]').forEach(c => c.checked = false);
+            document.querySelectorAll('input[type=radio]').forEach(r => { if (r.value === 'all') r.checked = true; });
+            document.querySelector('input[name=type][value="ay27"]').checked = true;
+            document.querySelector('input[name=s2type][value="taken"]').checked = true;
+            FILTER_IDS.forEach(updateFbt); syncS2TypeUi();
+            show('info-banner', 'flex'); show('error-banner', 'none'); show('progress-wrap', 'none');
+            const rp = document.getElementById('run-pill'); rp.className = 'run-pill'; rp.textContent = 'Not yet run';
+            setAsOf(null); show('refresh-btn', 'none');
+            try { localStorage.removeItem(LAST_FILTERS_KEY); } catch (e) { }
+            document.getElementById('s1-grid').classList.remove('show-funnel'); show('funnel-card', 'none');
+            document.getElementById('funnel').innerHTML = '';
+            renderCardShells(true); _cardCounts = null;
+            applyRoleScoping(); checkApply();
+        }
+
+        // ═══════════════════════════════════════════════════════════════
+        // INIT
+        // ═══════════════════════════════════════════════════════════════
+        document.addEventListener('DOMContentLoaded', async () => {
+            purgeLegacyCaches();
+            renderCardShells(true);
+            FILTER_IDS.forEach(setupDropdown);
+
+            // Section 02 filters → nothing runs until the user clicks Apply
+            ['fi-s2type', 'fi-s2branch', 'fi-schrange', 'fi-appeared', 'fi-origin', 'fi-s2class', 'fi-s2qual', 'fi-s2visit', 'fi-s2school', 'fi-s2stage'].forEach(id => {
+                document.getElementById(id).querySelector('.dd').addEventListener('change', () => {
+                    if (id === 'fi-s2type') syncS2TypeUi();   // only locks/unlocks two filters, no query
+                    if (_s2Rendered) s2Dirty(true);
+                });
+            });
+            document.getElementById('s2-apply-btn').addEventListener('click', applyS2);
+            document.getElementById('apply-btn').addEventListener('click', onApply);
+            document.getElementById('reset-btn').addEventListener('click', onReset);
+            document.getElementById('refresh-btn').addEventListener('click', async () => {
+                _forceRefresh = true;
+                try { await ensureSelfId(); localStorage.removeItem(CAP_CACHE_PREFIX + breakdownCacheKey()); localStorage.removeItem(CAP_CACHE_PREFIX + s2CacheKey()); } catch (e) { }
+                onApply();
+            });
+            updateFbt('fi-type'); updateFbt('fi-s2type'); checkApply();
+            try { await loadFilters(); } catch (e) { console.error('Filter load failed', e); }
+            await applyRoleScoping();
+
+            // Restore last filters + auto-run ONLY when the cached counts for that exact combo are still fresh
+            (async () => {
+                const saved = loadSavedFilters();
+                if (!saved || !saved.type || !HEAVY_TYPES.has(saved.type)) return;
+                await ensureSelfId();
+                if (!capCacheGet(cappedKeyFromParts(saved))) return;
+                if (restoreLastFilters(saved)) { checkApply(); onApply(); }
+            })();
+
+            // School search against the full table (debounced)
+            ['fi-school', 'fi-s2school'].forEach(id => {
+                const dd = document.getElementById(id).querySelector('.dd'), srch = dd.querySelector('input[type=search]');
+                let timer = null;
+                srch.addEventListener('input', () => {
+                    const term = srch.value.trim(); clearTimeout(timer);
+                    if (term.length < 2) return;
+                    timer = setTimeout(async () => {
+                        try {
+                            await searchSchools(term);
+                            const q = srch.value.toLowerCase();
+                            dd.querySelectorAll('label').forEach(l => { if (!l.querySelector('.select-all')) l.style.display = l.textContent.toLowerCase().includes(q) ? '' : 'none'; });
+                        } catch (e) { console.error('School search failed', e); }
+                    }, 350);
+                });
+            });
+
+            // ── collapsibles ──
+            document.getElementById('breakdown-toggle').addEventListener('click', () => {
+                const body = document.getElementById('breakdown-body'), chev = document.getElementById('breakdown-chevron');
+                if (body.style.display !== 'none') { body.style.display = 'none'; chev.style.transform = 'rotate(0deg)'; return; }
+                body.style.display = 'flex'; chev.style.transform = 'rotate(180deg)';
+                if (!_s1bRendered && !_s1bLoading) { ['branch-table', 'user-table'].forEach(i => show(i, 'none'));['branch-slot', 'user-slot'].forEach(i => show(i, 'flex')); }
+            });
+            document.getElementById('s2-toggle').addEventListener('click', () => {
+                const wrap = document.getElementById('s2-wrap'), chev = document.getElementById('s2-chevron'), open = wrap.style.display !== 'none';
+                show('s2-wrap', open ? 'none' : 'grid'); show('s2-filters', open ? 'none' : 'flex');
+                chev.style.transform = open ? 'rotate(0deg)' : 'rotate(180deg)';
+                if (!open && !_s2Rendered && !_s2Loading) showS2Placeholder();
+            });
+            document.getElementById('s2b-toggle').addEventListener('click', () => {
+                const body = document.getElementById('s2b-body'), chev = document.getElementById('s2b-chevron'), open = body.style.display !== 'none';
+                body.style.display = open ? 'none' : 'flex'; chev.style.transform = open ? 'rotate(0deg)' : 'rotate(180deg)';
+            });
+
+            // ── load-data buttons ──
+            document.getElementById('s2-wrap').addEventListener('click', e => { if (e.target.closest('.s2-load-btn')) loadSection2Once(); });
+            document.getElementById('load-breakdown-btn').addEventListener('click', async () => {
+                if (_s1bRendered || _s1bLoading || !_baseWhere) return;
+                _s1bLoading = true;
+                ['branch-slot', 'user-slot'].forEach(i => show(i, 'none'));['branch-loader', 'user-loader'].forEach(i => show(i, 'block'));
+                try {
+                    await ensureSelfId();
+                    let rows = capCacheGet(breakdownCacheKey());
+                    if (!rows) {
+                        rows = await fetchBreakdown();
+                        const payload = { t: Date.now(), branchRows: rows.branchRows, userRows: rows.userRows };
+                        if (JSON.stringify(payload).length < 2000000) capCacheSet(breakdownCacheKey(), payload);
+                    }
+                    renderBreakdownInto({ branch: 'branch-table', user: 'user-table' }, 's1', rows.branchRows, rows.userRows, METRICS);
+                    _s1bRendered = true;['branch-table', 'user-table'].forEach(i => show(i, ''));
+                } catch (e) {
+                    console.error('Breakdown load failed', e);['branch-slot', 'user-slot'].forEach(i => show(i, 'flex'));
+                } finally { _s1bLoading = false;['branch-loader', 'user-loader'].forEach(i => show(i, 'none')); }
+            });
+
+            // ── drill-downs ──
+            document.getElementById('cards').addEventListener('click', e => {
+                const c = e.target.closest('[data-cardmetric]'); if (!c || !_cardCounts) return;
+                const key = c.dataset.cardmetric;
+                openS1Drill(drillContextS1(L => key === 'total' ? '1 = 1' : metricPreds(L)[key], key), _cardCounts[key], key);
+            });
+            document.getElementById('funnel').addEventListener('click', e => {
+                const seg = e.target.closest('[data-fkey]'); if (!seg || !_cardCounts) return;
+                const key = seg.dataset.fkey;
+                const ctx = drillContextS1(L => funnelPredPrefixed(L, key), '__funnel__');
+                ctx.exportWhere = and(_baseWhere, funnelPredPrefixed('', key));
+                openDrill(ctx, _cardCounts['f_' + key], 'Stage · ' + FUNNEL_STAGES.find(s => s.key === key).label, 'lead');
+            });
+            // 01B cells → lead list
+            document.getElementById('breakdown-body').addEventListener('click', e => {
+                const td = e.target.closest('td.drillable'); if (!td) return;
+                const ri = +td.dataset.ri, g = ri < 0 ? '' : _bdWhere.s1[td.dataset.tbl][ri], metric = td.dataset.metric;
+                const where = and(_baseWhere, g, metric === 'total' ? '' : metricPreds()[metric]);
+                openS1Drill({ from: 'leads_object', L: '', where, exportWhere: where }, Number(td.textContent.replace(/[^0-9]/g, '')) || 0, metric);
+            });
+            // Section 02 table cell → load Section 02b below
+            // Section 02 table cell → Total column opens the lead list, every other column loads Section 02b
+            document.getElementById('s2-wrap').addEventListener('click', e => {
+                const td = e.target.closest('td.cell'); if (!td) return;
+                const sel = { coh: td.dataset.coh, tbl: td.dataset.tbl, row: td.dataset.row, met: td.dataset.met };
+                if (sel.met === 'total' || sel.row === 'tot') {
+                    openS2Drill(sel, Number(td.textContent.replace(/[^0-9]/g, '')) || 0);
+                    return;
+                }
+                s2Sel = sel;
+                ['iacst', 'anthe'].forEach(k => { if (s2Data[k]) renderS2Panel(k); });
+                loadS2Breakdown();
+            });
+            // 02b cells → lead list (scholarship columns)
+            document.getElementById('s2b-body').addEventListener('click', e => {
+                const td = e.target.closest('td.drillable'); if (!td || !s2Sel) return;
+                const ri = +td.dataset.ri, g = ri < 0 ? '' : _bdWhere.s2[td.dataset.tbl][ri], metric = td.dataset.metric, seg = s2SegDef(s2Sel);
+                const where = and(s2CohortWhere(s2Sel.coh), seg.pred, g, metric === 'total' ? '' : metricPreds()[metric]);
+                const ctx = { from: 'leads_object', L: '', where, exportWhere: where, hydrateExtra: and(...s2ScholParts(s2Sel.coh), seg.pred) };
+                const c = S2_COH[s2Sel.coh];
+                openDrill(ctx, Number(td.textContent.replace(/[^0-9]/g, '')) || 0, `${c.name} · ${seg.label} · ${S2_METRICS.find(m => m.key === metric).label}`, 'schol');
+            });
+
+            // ── modals ──
+            const closeModal = () => { document.getElementById('modal').classList.remove('active'); show('drill-pager', 'none'); };
+            document.getElementById('modal-close').addEventListener('click', closeModal);
+            document.getElementById('modal').addEventListener('click', e => { if (e.target.id === 'modal') closeModal(); });
+            document.getElementById('drill-pager').addEventListener('click', e => {
+                if (e.target.closest('#drill-prev')) { _drill.page--; renderDrillPage(); }
+                if (e.target.closest('#drill-next')) { _drill.page++; renderDrillPage(); }
+            });
+            document.getElementById('remarks-close').addEventListener('click', () => document.getElementById('remarks-modal').classList.remove('active'));
+            document.getElementById('remarks-modal').addEventListener('click', e => { if (e.target.id === 'remarks-modal') document.getElementById('remarks-modal').classList.remove('active'); });
+        });
+    </script>
+</body>
+
+</html>

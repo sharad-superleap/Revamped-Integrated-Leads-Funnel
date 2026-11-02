@@ -1,0 +1,49 @@
+,,,,,,,,,
+,,,,,,"AI-Qualified Date Time
+OR
+Call back Date Time
+
+[in last 15 days]","Branch Visit - Scheduled for Date & Time (Lead)
+OR
+Home Visit - Scheduled for Date & Time (Lead)
+
+[21 oct'26 onwards]","Last Home Visit - Done Date (Lead)
+OR
+Last Branch Visit - Done Date (Lead)
+
+[21 oct'26 onwards]","Scholarship-Associated Lead-Associated Product
+
+Journey Stage = Admission Done AND Career = RCC/HYB AND Term = 2728/2729/2730/2731"
+By Origin,Total,Untouched,Follow-up Today,Follow-up Missed,Pull-back EOD,Callback Req.,"Visit Booked
+(21 Oct Onwards)","Visit Done
+(21 Oct Onwards)","RCC/HYB Adm
+AY27"
+,,,,,,,,,
+Dill down,,,,,,,,,
+Field Name,Sample value,Action,,,,,,,
+Lead ID,001No000001w6zEIAQ,No action,,,,,,,
+Lead Name,Kartik singh,No action,,,,,,,
+PSID,10945134,No action,,,,,,,
+Scholarship %,100,No action,,,,,,,
+Stage,Qualified Lead,No action,,,,,,,
+Next Follow Up,2026-10-27T16:00:00+05:30,No action,,,,,,,
+Next FU Mode,Branch Visit,No action,,,,,,,
+Roll Number,5.70E+11,No action,,,,,,,
+Origin,Upload,No action,,,,,,,
+Mode,offline,No action,,,,,,,
+Scholarship Created,2026-09-12T17:48:37+05:30,No action,,,,,,,
+Exam Type,ANTHE,No action,,,,,,,
+Branch,Rewa,No action,,,,,,,
+Class Studying In,10,No action,,,,,,,
+School Name,Jyoti Sr. Sec. School,No action,,,,,,,
+Term,2627,No action,,,,,,,
+Appear Date,08-11-2026,Remove,,,,,,,
+Remarks,"25-10-26, 2:36 PM; The call wa",No action,,,,,,,
+Visit Booked for Date,Date time,branch or home visit whichever is latest. Show values 21 oct onwards,,,,,,,
+Visit Booked by,Username,"fetch from:
+ Branch visit booked by/ Home visit booked by- depending on the latest is branch or home",,,,,,,
+Visit Done Date,Date time,branch or home visit whichever is latest. Show values 21 oct onwards,,,,,,,
+Visit Done Type,Home/branch,branch or home visit whichever is latest. Show values 21 oct onwards,,,,,,,
+Owner,Kirti Singh,No action,,,,,,,
+TL/Supervisor,kirtisingh.adm@aesl.in,No action,,,,,,,
+RSGH,shaileshsingh.adm@aesl.in,No action,,,,,,,

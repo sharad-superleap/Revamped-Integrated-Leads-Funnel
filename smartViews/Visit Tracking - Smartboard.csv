@@ -1,0 +1,50 @@
+,,,,Branch Visit,Session Booked for Branch,Branch Visit - Scheduled for Date & Time (Lead),Last Home Visit - Done Date (Lead) after or equal to date mentioned in Col G -  YES/NO,Branch Visit Booked By,"If User is WEBSITE/ AESL Admin (Col I) mention Website Booking
+If User is AI BOT (Col I) mention AI BOT
+For all other users fetch - User's New Department
+","Lead -----> Scholarship ------> 
+iACST+2728+Roll Number not Empty","Lead -----> Scholarship ------> 
+iACST+2728+Roll Number not Empty
+
+Then check Result Object of this scholarship and fetch Eligible scholarship
+
+
+**Incase of multiple result found against the lead satisfying above condition - Then publish highest","Lead -----> Scholarship ------> 
+ANTHE+2627+Roll Number not Empty
+
+Then check Result Object of this scholarship and fetch Eligible scholarship
+
+
+**Incase of multiple result found against the lead satisfying above condition - Then publish highest",,,,
+,,,,Home Visit,Home Visit Booked By User's Branch,Home Visit - Scheduled for Date & Time (Lead),Last Branch Visit - Done Date (Lead)  after or equal to date mentioned in Col G - YES/NO,Home Visit Booked By,,,,,,,,
+,,,,,,,,,,,,,,,,
+Name,PSID,Lead Stage,Next Follow up Date,Type of Visit,Booked for Branch,Visit for Date Time,Visit Done Status,Booked By,Booked By Team,iACST 27 Registered,iACST 27 Highest %,ANTHE 27 Highest %,Overall Remarks,Lead Owner,Lead Owner Branch,Lead Owner RSGH
+,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,
+"[Home Visit - Scheduled for Date & Time (Lead) is non Empty OR
+Branch Visit - Scheduled for Date & Time (Lead) is non Empty]
+
+
+
+AND 
+
+
+For Branch Visit - Basis the Branch Booked For BU - That BU Code search in User Table - Against that BU Code fetch RSGH,RD AND BM they become the accessible users
+For Home Visit - Basis the booked by Users Manager",,,,,,,,,,,,,,,,
+,,,,,,,RSGH,,,,,,,,,
+,,,,,,,RD,,,,,,,,,
+,,,,,,,,,,,,,,,,
+Filter,,,,,,,BM,,,,,,,,,
+,,,,,,,Team,,,,,,,,,
+Booked For Branch [Common for both Home and Branch],Dropdown,,,,,,,,,,,,,,,
+Booked By Team,Branch/Call Centre/AI BOT/Website,,,,,,,,,,,,,,,
+Booked By User,,,,,,,,,,,,,,,,
+Visit Type,Home/Branch,,,,,,,,,,,,,,,
+Visit Book for Date,,,,,,,,,,,,,,,,
+Visit Book on Date,,,,,,,,,,,,,,,,
+ANTHE Exam %,,,,,,,,,,,,,,,,
+iACST Exam %,,,,,,,,,,,,,,,,
+Lead Stage,,,,,,,,,,,,,,,,
+Next Follow up Date,,,,,,,,,,,,,,,,

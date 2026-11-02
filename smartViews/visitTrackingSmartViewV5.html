@@ -1,0 +1,1240 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <script>
+        window.onerror = function (m, s, l, c, e) { window.parent.postMessage({ type: 'dashboard-error', error: { message: m, source: s, line: l, stack: e?.stack } }, '*'); return false; };
+        window.addEventListener('unhandledrejection', e => { window.parent.postMessage({ type: 'dashboard-error', error: { message: 'Unhandled Promise Rejection', reason: e.reason?.message || String(e.reason) } }, '*'); });
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visit Tracking</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            /* background: #f6f7f9; */
+            background: #fff;  
+            color: #1f2937;
+            font-size: 13px;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        button,
+        input,
+        select {
+            font-family: inherit;
+        }
+
+        .head {
+            background: #fff;
+            border-bottom: 1px solid #eef1f4;
+            padding: 14px 20px 12px;
+        }
+
+        .head-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #111827;
+            letter-spacing: -.01em;
+        }
+
+        .title small {
+            display: block;
+            font-size: 12px;
+            font-weight: 400;
+            color: #6b7280;
+            margin-top: 2px;
+        }
+
+        .pill {
+            padding: 6px 14px;
+            border: 1px solid #e5e7eb;
+            border-radius: 999px;
+            font-size: 12px;
+            color: #6b7280;
+            background: #fff;
+            white-space: nowrap;
+        }
+
+        .pill.ok {
+            border-color: #86efac;
+            color: #166534;
+            background: #f0fdf4;
+        }
+
+        .filters {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px 12px;
+            align-items: flex-end;
+        }
+
+        .fi {
+            position: relative;
+            width: 170px;
+        }
+
+        .fi.w2 {
+            width: 230px;
+        }
+
+        .fl {
+            display: block;
+            font-size: 11px;
+            font-weight: 600;
+            color: #6b7280;
+            margin-bottom: 4px;
+        }
+
+        .fb {
+            width: 100%;
+            padding: 7px 11px;
+            background: #fff;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            text-align: left;
+            cursor: pointer;
+            font-size: 13px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 6px;
+            color: #374151;
+        }
+
+        .fb:hover {
+            border-color: #175259;
+        }
+
+        .fb.filled {
+            background: #e8f1f2;
+            border-color: #175259;
+            color: #0f3d42;
+            font-weight: 500;
+        }
+
+        .fbt {
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .fbt.ph {
+            color: #9ca3af;
+            font-weight: 400;
+        }
+
+        .arr {
+            color: #9ca3af;
+            font-size: 10px;
+        }
+
+        .dd {
+            display: none;
+            position: absolute;
+            top: calc(100% + 4px);
+            left: 0;
+            min-width: 100%;
+            max-width: 340px;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, .12), 0 0 0 1px rgba(0, 0, 0, .05);
+            z-index: 300;
+            padding: 6px;
+        }
+
+        .dd.open {
+            display: block;
+        }
+
+        .dd input[type=search] {
+            width: 100%;
+            padding: 6px 9px;
+            margin-bottom: 5px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 12px;
+            outline: none;
+        }
+
+        .opts {
+            max-height: 260px;
+            overflow-y: auto;
+        }
+
+        .opts label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 8px;
+            cursor: pointer;
+            border-radius: 6px;
+            color: #374151;
+        }
+
+        .opts label:hover {
+            background: #f3f4f6;
+        }
+
+        .opts input {
+            accent-color: #175259;
+            flex-shrink: 0;
+        }
+
+        .rng {
+            display: flex;
+            gap: 6px;
+        }
+
+        .rng input {
+            width: 100%;
+            min-width: 0;
+            padding: 6px 8px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 12.5px;
+            color: #374151;
+            background: #fff;
+        }
+
+        .rng input:focus,
+        .dd input:focus {
+            outline: none;
+            border-color: #175259;
+        }
+
+        .fi.rg {
+            width: 250px;
+        }
+
+        .fi.pc {
+            width: 140px;
+        }
+
+        .btn {
+            padding: 8px 20px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            border: 1px solid #d1d5db;
+            background: #fff;
+            color: #374151;
+            height: 34px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn:hover {
+            background: #f3f4f6;
+        }
+
+        .btn.primary {
+            background: #175259;
+            border-color: #175259;
+            color: #fff;
+        }
+
+        .btn.primary:hover {
+            background: #0f3d42;
+        }
+
+        .btn:disabled {
+            opacity: .5;
+            cursor: not-allowed;
+        }
+
+        .main {
+            padding: 14px 20px 40px;
+        }
+
+        .banner {
+            border-radius: 8px;
+            padding: 10px 14px;
+            font-size: 13px;
+            margin-bottom: 12px;
+            display: none;
+        }
+
+        .banner.err {
+            background: #fef2f2;
+            border: 1px solid #fca5a5;
+            color: #991b1b;
+        }
+
+        .banner.warn {
+            background: #fffbeb;
+            border: 1px solid #fcd34d;
+            color: #92400e;
+        }
+
+        .card {
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 16px;
+            border-bottom: 1px solid #eef1f4;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .count {
+            font-weight: 600;
+            color: #111827;
+        }
+
+        .count span {
+            font-weight: 400;
+            color: #6b7280;
+            margin-left: 8px;
+        }
+
+        .tw {
+            overflow: auto;
+            max-height: calc(100vh - 290px);
+            min-height: 200px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            white-space: nowrap;
+            font-size: 12.5px;
+        }
+
+        thead th {
+            position: sticky;
+            top: 0;
+            z-index: 2;
+            background: #f9fafa;
+            font-size: 11px;
+            font-weight: 700;
+            color: #6b7280;
+            padding: 10px 12px;
+            text-align: left;
+            border-bottom: 2px solid #e5e7eb;
+            border-right: 1px solid #eef1f4;
+        }
+
+        tbody td {
+            padding: 9px 12px;
+            border-bottom: 1px solid #f3f4f6;
+            border-right: 1px solid #f6f7f9;
+        }
+
+        tbody tr:hover td {
+            background: #f9fafb;
+        }
+
+        td a {
+            color: #175259;
+            text-decoration: underline;
+        }
+
+        .tag {
+            display: inline-block;
+            padding: 2px 9px;
+            border-radius: 999px;
+            font-size: 11.5px;
+            font-weight: 600;
+        }
+
+        .tag.branch {
+            background: #e0f2f4;
+            color: #175259;
+        }
+
+        .tag.home {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .tag.yes {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .tag.no {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .rem {
+            max-width: 240px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            color: #1e3a5f;
+            cursor: pointer;
+            text-decoration: underline;
+        }
+
+        .empty {
+            padding: 50px 20px;
+            text-align: center;
+            color: #6b7280;
+        }
+
+        .loader {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #175259;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin .8s linear infinite;
+            margin: 50px auto;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .pager {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 16px;
+            border-top: 1px solid #eef1f4;
+            font-size: 12px;
+            color: #6b7280;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, .5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal.open {
+            display: flex;
+        }
+
+        .mbox {
+            background: #fff;
+            border-radius: 12px;
+            padding: 20px;
+            width: 92vw;
+            max-width: 640px;
+            max-height: 85vh;
+            overflow: auto;
+        }
+
+        .mhd {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            font-weight: 700;
+            color: #175259;
+            font-size: 15px;
+        }
+
+        .mhd button {
+            background: none;
+            border: none;
+            font-size: 22px;
+            cursor: pointer;
+            color: #6b7280;
+        }
+
+        #rem-body {
+            line-height: 1.6;
+            font-size: 13px;
+            color: #374151;
+        }
+
+        .tw thead th.c1,
+        .tw thead th.c2 {
+            z-index: 4;
+        }
+
+        .tw tbody td.c1,
+        .tw tbody td.c2 {
+            position: sticky;
+            z-index: 1;
+            background: #fff;
+        }
+
+        .tw th.c1,
+        .tw td.c1 {
+            left: 0;
+            width: 180px;
+            min-width: 180px;
+            max-width: 180px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .tw th.c2,
+        .tw td.c2 {
+            left: 180px;
+            min-width: 110px;
+            box-shadow: 2px 0 4px rgba(0, 0, 0, .06);
+        }
+
+
+        /* Pagination */
+        .pgs {
+            display: flex;
+            gap: 4px;
+            align-items: center;
+        }
+
+        .pg {
+            min-width: 32px;
+            height: 34px;
+            padding: 0 8px;
+            border: 1px solid #d1d5db;
+            background: #fff;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 12.5px;
+            font-weight: 600;
+            color: #374151;
+        }
+
+        .pg:hover {
+            background: #f3f4f6;
+        }
+
+        .pg.on {
+            background: #175259;
+            border-color: #175259;
+            color: #fff;
+        }
+
+
+        .cal {
+            display: none;
+            position: absolute;
+            top: calc(100% + 4px);
+            left: 0;
+            z-index: 300;
+            width: 272px;
+            background: #fff;
+            border-radius: 10px;
+            padding: 12px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, .12), 0 0 0 1px rgba(0, 0, 0, .05);
+        }
+
+        .cal.open {
+            display: block;
+        }
+
+        .ch {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #111827;
+        }
+
+        .ch button {
+            width: 28px;
+            height: 28px;
+            border: 1px solid #e5e7eb;
+            background: #fff;
+            border-radius: 6px;
+            cursor: pointer;
+            color: #374151;
+            font-size: 15px;
+            line-height: 1;
+        }
+
+        .ch button:hover {
+            background: #f3f4f6;
+        }
+
+        .cg {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            row-gap: 2px;
+        }
+
+        .cg .wd {
+            font-size: 10.5px;
+            font-weight: 600;
+            color: #9ca3af;
+            text-align: center;
+            padding: 4px 0;
+        }
+
+        .cg .d {
+            height: 32px;
+            border: none;
+            background: none;
+            font-size: 12.5px;
+            color: #374151;
+            cursor: pointer;
+            border-radius: 8px;
+        }
+
+        .cg .d:hover {
+            background: #f3f4f6;
+        }
+
+        .cg .d.td {
+            font-weight: 700;
+            color: #175259;
+        }
+
+        .cg .d.in {
+            background: #e8f1f2;
+            color: #0f3d42;
+            border-radius: 0;
+        }
+
+        .cg .d.st,
+        .cg .d.en {
+            background: #175259;
+            color: #fff;
+        }
+
+        .cg .d.st {
+            border-radius: 8px 0 0 8px;
+        }
+
+        .cg .d.en {
+            border-radius: 0 8px 8px 0;
+        }
+
+        .cg .d.st.en {
+            border-radius: 8px;
+        }
+
+        .cf {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 8px;
+            font-size: 11.5px;
+            color: #6b7280;
+        }
+
+        .cf button {
+            background: none;
+            border: none;
+            color: #175259;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .rerr {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            margin-top: 3px;
+            font-size: 11.5px;
+            color: #b91c1c;
+            white-space: nowrap;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="head">
+        <div class="head-row">
+            <div class="title">Visit Tracking<small>Branch and home visits booked, with the lead's scholarship
+                    status</small></div>
+            <span class="pill" id="pill">Not yet run</span>
+        </div>
+        <div class="filters">
+            <div class="fi w2" id="f-branch" data-label="Booked for branch"></div>
+            <div class="fi" id="f-team" data-label="Booked by team"></div>
+            <div class="fi w2" id="f-user" data-label="Booked by user"></div>
+            <div class="fi" id="f-vtype" data-label="Visit type"></div>
+            <div class="fi rg" id="r-for" data-label="Visit book for date" data-required="1"></div>
+            <div class="fi rg" id="r-on" data-label="Visit book on date"></div>
+            <div class="fi" id="f-an" data-label="ANTHE exam %"></div>
+            <div class="fi" id="f-ia" data-label="iACST exam %"></div>
+            <div class="fi w2" id="f-stage" data-label="Lead stage"></div>
+            <div class="fi rg" id="r-fu" data-label="Next follow up date"></div>
+            <button class="btn primary" id="apply" disabled>Apply</button>
+            <button class="btn" id="reset">Reset</button>
+        </div>
+    </div>
+
+    <div class="main">
+        <div class="banner err" id="err"></div>
+        <div class="banner warn" id="warn"></div>
+        <div class="card">
+            <div class="bar">
+                <div class="count" id="count">—</div>
+                <button class="btn" id="export" disabled="">Export CSV</button>
+            </div>
+            <div class="tw" id="tw">
+                <div class="empty">Choose your filters and click Apply.</div>
+            </div>
+            <div class="pager" id="pager" style="display:none"></div>
+        </div>
+    </div>
+
+    <div class="modal" id="rem-modal">
+        <div class="mbox">
+            <div class="mhd">Overall remarks<button id="rem-close" aria-label="Close">×</button></div>
+            <div id="rem-body"></div>
+        </div>
+    </div>
+
+    <script>
+        // ═══════════════════════════════════════════════════════════════
+        // CONFIG
+        // ═══════════════════════════════════════════════════════════════
+        const BASE_URL = 'https://aakash.superleap.com';
+        const API_URL = BASE_URL + '/api/v1/reports/execute';
+        const token = new URLSearchParams(window.location.search).get('token');
+
+        // /user/me needs the client headers — copy the same values used in the funnel dashboard
+        const CLIENT_ID = 'superleapweb';
+        const CLIENT_SECRET = 'UEAlm1PWab8VXB5b';
+
+        const PAGE_SIZE = 100;
+        const MAX_ROWS_PER_TYPE = 500000;      // safety cap per visit type
+        const SUPER_ROLE_ID = 't98xyD_uu2YlFZQ';
+        const USER_STATUS = ['active'];
+
+        const MAX_RANGE_DAYS = 90;
+        const daySpan = (a, b) => Math.round((new Date(b) - new Date(a)) / 86400000) + 1;   // inclusive
+
+        // Lead fields, per visit type
+        const F = {
+            branch: { sched: 'branch_visit_scheduled_for_date_time', done: 'branch_visit_done_date', by: 'branch_visit_booked_by', bookedOn: 'branch_visit_booked_on' },   // ⚠ confirm bookedOn API names
+            home: { sched: 'home_visit_scheduled_date_time', done: 'home_visit_done_date', by: 'home_visit_booked_by', bookedOn: 'home_visit_booked_on' },
+        };
+
+
+        // same bands as Section 02's Scholarship Range; op/val = server-side pruning, test = exact check on the lead's highest %
+        const BANDS = [{ value: 'zero', name: '0%', op: '>=', val: 0, test: p => p === 0 }]
+            .concat([0, 10, 20, 30, 40, 50, 60, 70, 80].map(lo => ({ value: `${lo}to${lo + 10}`, name: `>${lo}% – ${lo + 10}%`, op: '>', val: lo, test: p => p > lo && p <= lo + 10 })))
+            .concat([{ value: 'gte90', name: '90%+', op: '>', val: 90, test: p => p > 90 }]);
+        const bandOf = v => BANDS.find(b => b.value === v);
+        const inBand = (p, v) => !v || (p != null && bandOf(v).test(p));
+
+
+
+
+
+
+        const SESSION_BRANCH = 'session_booked_for_branch';          // lead → aesl_branch__c
+        const BRANCH_OBJECT = 'aesl_branch__c';
+        const BRANCH_ACTIVE = 'AESL_Effective_Status__c = 1';
+        const BRANCH_BU_FIELD = 'AESL_BU_Code__c';                   // ⚠ BU code field on aesl_branch__c
+        const USER_BU_FIELD = 'AESL_User_Branch_Code__c';                             // ⚠ BU code field on user
+        const USER_DEPT = 'new_department';
+        const USER_BRANCH = 'user_branch_name_user_management_';
+        const MANAGER_FIELDS = ['team_supervisor', 'team_sales_head', 'team_dept_head'];   // BM, RSGH, RD
+
+        // Scholarship (same definitions as the funnel dashboard)
+        const SCHOL_OBJECT = 'scholarship_object';
+        const REL_SCHOL_LEAD = 'associated_lead';
+        const SCHOL_ROLL = 'AESL_Roll_No__c';
+        const RESULT_ELIGIBLE = 'AESL_Eligible_Scholarship__c';
+        const ANTHE_TYPES = ['ANTHE', 'AKTHE'];
+        const LEVELS = { '2627': 'a1ONo00000022XBMAY', '2728': 't98xyD_uchLpt2P' };
+        const IACST_TERM = '2728', ANTHE_TERM = '2627';
+
+        const STAGES = ['Untouched Lead', 'Not-Connected', 'Call Back', 'Qualified Lead', 'Qualified: Branch visit Booked', 'Qualified: Branch visit Done', 'Qualified: House visit Booked', 'Qualified: House visit Done', 'Not-Interested', 'Not-Eligible', 'Admission Done'];
+
+
+        const WEBSITE_NAMES = ['website', 'AESL Admin'];
+        const AI_BOT_NAMES = ['System AI Bot'];
+        const DEPT_BRANCH = ['Own Branches', 'Franchise'];
+        const DEPT_CALL = ['ICC', 'OCC'];
+
+        // "Booked by team" options → predicate on the booked-by user
+        const TEAMS = ['Branch', 'Call Centre', 'AI BOT', 'Website'];
+        function teamPred(by, t) {
+            const nm = `${by}.name`, dept = `${by}.${USER_DEPT}`;
+            if (t === 'Website') return `${nm} IN (${sq(WEBSITE_NAMES)})`;
+            if (t === 'AI BOT') return `${nm} IN (${sq(AI_BOT_NAMES)})`;
+            if (t === 'Branch') return `${dept} IN (${sq(DEPT_BRANCH)})`;
+            return `${dept} IN (${sq(DEPT_CALL)})`;   // Call Centre
+        }
+
+        // ═══════════════════════════════════════════════════════════════
+        // HELPERS
+        // ═══════════════════════════════════════════════════════════════
+        const $ = id => document.getElementById(id);
+        const IST = 5.5 * 3600 * 1000;
+        const istStart = iso => { const [y, m, d] = iso.split('-').map(Number); return Date.UTC(y, m - 1, d) - IST; };
+        const istEnd = iso => istStart(iso) + 86400000 - 1;
+        const istDayStartOf = ts => { const d = new Date(Number(ts) + IST); d.setUTCHours(0, 0, 0, 0); return d.getTime() - IST; };
+        const todayIso = () => new Date(Date.now() + IST).toISOString().slice(0, 10);
+        const esc = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        const sq = arr => arr.map(v => `'${String(v).replace(/'/g, "''")}'`).join(',');
+        const and = (...p) => p.filter(Boolean).join(' AND ');
+        const sleep = ms => new Promise(r => setTimeout(r, ms));
+        const fmtDate = e => e ? new Date(Number(e)).toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata', day: '2-digit', month: 'short', year: '2-digit' }) : '—';
+        const fmtDT = e => e ? new Date(Number(e)).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', day: '2-digit', month: 'short', year: '2-digit', hour: '2-digit', minute: '2-digit' }) : '—';
+        const num = v => (v === '' || v == null || isNaN(Number(v))) ? null : Number(v);
+
+
+        let MY_BRANCH = '', READY = false;
+
+        async function loadMyBranch() {
+            const r = await fetch(BASE_URL + '/api/v1/org/user/me', { headers: { 'Authorization': `Bearer ${token}`, 'client-id': CLIENT_ID, 'client-secret': CLIENT_SECRET } });
+            const id = (await r.json())?.data?.user_id; if (!id) return '';
+            const rows = await query(`SELECT ${USER_BRANCH} as b FROM user WHERE id IN (${sq([id])}) LIMIT 1 OFFSET 0`, 'user');
+            return rows[0]?.b || '';
+        }
+
+        async function safe(fn, retries = 3) {
+            let last;
+            for (let i = 0; i < retries; i++) { try { return await fn(); } catch (e) { last = e; if (i < retries - 1) await sleep(600 * (i + 1)); } }
+            throw last;
+        }
+        async function post(url, q, slug) {
+            const r = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ query: q, slug }) });
+            if (!r.ok) throw new Error(`HTTP ${r.status}: ${await r.text()}`);
+            const j = await r.json();
+            if (!j.success) throw new Error(j.data?.message || 'API error');
+            return j.data;
+        }
+        const query = (q, slug) => safe(async () => (await post(API_URL, q, slug)).records || []);
+        async function runPool(fns, conc = 4) {
+            const res = new Array(fns.length); let idx = 0;
+            const next = async () => { const i = idx++; if (i >= fns.length) return; res[i] = await fns[i](); await next(); };
+            await Promise.all(Array.from({ length: Math.min(conc, fns.length) }, next));
+            return res;
+        }
+        // sql must contain __LO__ where LIMIT/OFFSET goes
+        async function pageAll(sql, slug, batch = 50000) {
+            let all = [], page = 0;
+            while (true) {
+                const rows = await query(sql.replace('__LO__', `LIMIT ${batch} OFFSET ${page * batch}`), slug);
+                all = all.concat(rows);
+                if (rows.length < batch) break;
+                page++;
+            }
+            return all;
+        }
+
+
+        // ═══ RANGE CALENDAR ═══
+        const RG = {};
+        const MON = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+        const pad = n => String(n).padStart(2, '0');
+        const isoOf = (y, m, d) => `${y}-${pad(m + 1)}-${pad(d)}`;
+        const fmtIso = iso => { const [y, m, d] = iso.split('-').map(Number); return `${pad(d)} ${MON[m - 1].slice(0, 3)} ${y}`; };
+
+        function makeRange(id, onChange) {
+            const root = $(id);
+            root.innerHTML = `<span class="fl">${root.dataset.label}${root.dataset.required ? ' <span style="color:#ef4444">*</span>' : ''}</span>
+        <button type="button" class="fb"><span class="fbt ph">Select date range</span><span class="arr">▼</span></button>
+        <div class="cal"></div><div class="rerr" id="${id}-err"></div>`;
+            const btn = root.querySelector('.fb'), fbt = root.querySelector('.fbt'), cal = root.querySelector('.cal');
+            const today = todayIso();
+            let from = '', to = '', pick = '', hover = '', vy = 0, vm = 0;
+
+            function label() {
+                fbt.textContent = !from ? 'Select date range' : from === to ? fmtIso(from) : `${fmtIso(from)} – ${fmtIso(to)}`;
+                fbt.classList.toggle('ph', !from); btn.classList.toggle('filled', !!from);
+            }
+            function paint() {
+                const a = pick || from, b = pick ? (hover || pick) : to;
+                const lo = a && b ? (a < b ? a : b) : '', hi = a && b ? (a < b ? b : a) : '';
+                cal.querySelectorAll('.d').forEach(el => {
+                    const iso = el.dataset.d;
+                    el.classList.toggle('in', !!lo && iso > lo && iso < hi);
+                    el.classList.toggle('st', !!lo && iso === lo);
+                    el.classList.toggle('en', !!hi && iso === hi);
+                    el.classList.toggle('td', iso === today);
+                });
+            }
+            function draw() {
+                const lead = (new Date(Date.UTC(vy, vm, 1)).getUTCDay() + 6) % 7;      // Monday-first
+                const dim = new Date(Date.UTC(vy, vm + 1, 0)).getUTCDate();
+                let cells = ['M', 'T', 'W', 'T', 'F', 'S', 'S'].map(w => `<span class="wd">${w}</span>`).join('') + '<span></span>'.repeat(lead);
+                for (let d = 1; d <= dim; d++) cells += `<button type="button" class="d" data-d="${isoOf(vy, vm, d)}">${d}</button>`;
+                cal.innerHTML = `<div class="ch"><button type="button" data-nav="-1" aria-label="Previous month">‹</button><span>${MON[vm]} ${vy}</span><button type="button" data-nav="1" aria-label="Next month">›</button></div>
+            <div class="cg">${cells}</div>
+            <div class="cf"><span>${pick ? 'Pick the end date' : 'Pick the start date'}</span><button type="button" data-clear="1">Clear</button></div>`;
+                paint();
+            }
+            function open() {
+                document.querySelectorAll('.dd.open, .cal.open').forEach(d => { if (d !== cal) d.classList.remove('open'); });
+                const [y, m] = (from || today).split('-').map(Number); vy = y; vm = m - 1; pick = ''; hover = '';
+                draw(); cal.classList.add('open');
+            }
+            function close() { cal.classList.remove('open'); pick = ''; hover = ''; }
+
+            btn.addEventListener('click', e => { e.stopPropagation(); cal.classList.contains('open') ? close() : open(); });
+            document.addEventListener('click', e => { if (!root.contains(e.target)) close(); }, true);   // capture: still fires when other widgets stopPropagation
+            cal.addEventListener('mouseover', e => {
+                if (!pick) return;
+                const el = e.target.closest('.d'); if (el && el.dataset.d !== hover) { hover = el.dataset.d; paint(); }
+            });
+            cal.addEventListener('click', e => {
+                const nav = e.target.closest('[data-nav]');
+                if (nav) { vm += +nav.dataset.nav; if (vm < 0) { vm = 11; vy--; } if (vm > 11) { vm = 0; vy++; } draw(); return; }
+                if (e.target.closest('[data-clear]')) { api.clear(); close(); onChange && onChange(); return; }
+                const el = e.target.closest('.d'); if (!el) return;
+                const iso = el.dataset.d;
+                if (!pick) { pick = iso; hover = ''; draw(); return; }
+                from = pick <= iso ? pick : iso; to = pick <= iso ? iso : pick;      // same day twice → single-day range
+                label(); close(); onChange && onChange();
+            });
+
+            const api = {
+                get: () => ({ from, to }),
+                set(a, b) { from = a; to = b || a; label(); },
+                clear() { from = to = pick = hover = ''; label(); },
+            };
+            label();
+            return (RG[id] = api);
+        }
+
+
+
+
+
+        const levelPred = (col, term) => `${col} = '${LEVELS[term]}'`;
+        const typePred = (col, types) => types.length === 1 ? `${col} = '${types[0]}'` : `${col} IN (${sq(types)})`;
+        const rollOk = col => `${col} IS NOT NULL AND ${col} <> ''`;
+
+        // ═══════════════════════════════════════════════════════════════
+        // MULTI-SELECT FILTER
+        // ═══════════════════════════════════════════════════════════════
+        const MS = {};
+        function makeMulti(id, placeholder, items = [], searchable = true, single = false) {
+            const root = $(id);
+            root.innerHTML = `<span class="fl">${root.dataset.label}</span><button type="button" class="fb"><span class="fbt ph">${placeholder}</span><span class="arr">▼</span></button>
+                <div class="dd">${searchable ? '<input type="search" placeholder="Search...">' : ''}<div class="opts"></div></div>`;
+            const btn = root.querySelector('.fb'), dd = root.querySelector('.dd'), opts = root.querySelector('.opts'), srch = root.querySelector('input[type=search]'), fbt = root.querySelector('.fbt');
+            const api = {
+                set(list) {
+                    opts.innerHTML = '';
+                    const frag = document.createDocumentFragment();
+                    list.forEach(it => {
+                        const l = document.createElement('label'), c = document.createElement('input');
+                        c.type = 'checkbox'; c.value = it.value; c.dataset.name = it.name;
+                        l.appendChild(c); l.appendChild(document.createTextNode(' ' + it.name)); frag.appendChild(l);
+                    });
+                    opts.appendChild(frag);
+                },
+                get() { return [...opts.querySelectorAll('input:checked')].map(c => c.value); },
+                clear() { opts.querySelectorAll('input:checked').forEach(c => c.checked = false); refresh(); },
+                select(vals) { let n = 0; opts.querySelectorAll('input').forEach(c => { if (vals.includes(c.value)) { c.checked = true; n++; } }); refresh(); return n; },
+            };
+            function refresh() {
+                const ch = [...opts.querySelectorAll('input:checked')];
+                fbt.textContent = !ch.length ? placeholder : ch.length === 1 ? ch[0].dataset.name : `${ch.length} selected`;
+                fbt.classList.toggle('ph', !ch.length); btn.classList.toggle('filled', !!ch.length);
+            }
+            btn.addEventListener('click', e => { e.stopPropagation(); document.querySelectorAll('.dd.open').forEach(d => { if (d !== dd) d.classList.remove('open'); }); dd.classList.toggle('open'); });
+            document.addEventListener('click', e => { if (!root.contains(e.target)) dd.classList.remove('open'); });
+            opts.addEventListener('change', e => {
+                if (single && e.target.checked) { opts.querySelectorAll('input:checked').forEach(c => { if (c !== e.target) c.checked = false; }); dd.classList.remove('open'); }
+                refresh();
+            });
+            if (srch) srch.addEventListener('input', () => { const q = srch.value.toLowerCase(); opts.querySelectorAll('label').forEach(l => l.style.display = l.textContent.toLowerCase().includes(q) ? '' : 'none'); });
+            api.set(items);
+            return (MS[id] = api);
+        }
+
+        // ═══════════════════════════════════════════════════════════════
+        // ACCESS  (who can see which visits)
+        //  • Branch visit → viewer is RSGH / RD / BM of any user carrying the BU code of the branch booked for
+        //  • Home visit   → viewer is the manager (BM / RSGH / RD) of the user who booked it
+        // ═══════════════════════════════════════════════════════════════
+        let _access = null;
+        async function getAccess() {
+            if (_access) return _access;
+            const r = await fetch(BASE_URL + '/api/v1/org/user/me', { headers: { 'Authorization': `Bearer ${token}`, 'client-id': CLIENT_ID, 'client-secret': CLIENT_SECRET } });
+            const d = (await r.json())?.data || {};
+            const email = d.email || '', name = d.name || '';
+            const isSuper = d.user_type === 'super_admin' || d.role_id === SUPER_ROLE_ID;
+            if (isSuper) return (_access = { super: true });
+            const me = [...new Set([email, email.toLowerCase(), name].filter(Boolean))];
+            if (!me.length) throw new Error('Could not identify the logged-in user');
+            const who = MANAGER_FIELDS.map(f => `${f} IN (${sq(me)})`).join(' OR ');
+            const rows = await query(`SELECT DISTINCT ${USER_BU_FIELD} as bu FROM user WHERE ${USER_BU_FIELD} IS NOT NULL AND (${who}) LIMIT 5000 OFFSET 0`, 'user');
+            return (_access = { super: false, me, bus: rows.map(r => r.bu).filter(Boolean) });
+        }
+
+        // ═══════════════════════════════════════════════════════════════
+        // QUERY BUILDERS
+        // ═══════════════════════════════════════════════════════════════
+        function readFilters() {
+            return {
+                branches: MS['f-branch'].get(), teams: MS['f-team'].get(), users: MS['f-user'].get(), vtypes: MS['f-vtype'].get(), stages: MS['f-stage'].get(),
+                forFrom: RG['r-for'].get().from, forTo: RG['r-for'].get().to,
+                onFrom: RG['r-on'].get().from, onTo: RG['r-on'].get().to,
+                fuFrom: RG['r-fu'].get().from, fuTo: RG['r-fu'].get().to,
+                anBand: MS['f-an'].get()[0] || '', iaBand: MS['f-ia'].get()[0] || '',
+            };
+        }
+        const rangeSql = (col, from, to) => [from ? `${col} >= ${istStart(from)}` : '', to ? `${col} <= ${istEnd(to)}` : ''];
+
+        // lead has an ANTHE/iACST scholarship with result % >= min (server-side pruning; exact "highest" check happens client-side)
+        function scholBandExists(kind, key) {
+            const b = bandOf(key);
+            const inner = kind === 'anthe'
+                ? and(typePred('AESL_Lead_Type__c', ANTHE_TYPES), levelPred('AESL_Level__c', ANTHE_TERM))
+                : and(`AESL_Lead_Type__c = 'iACST'`, levelPred('AESL_Level__c', IACST_TERM));
+            return `EXISTS (SELECT 1 FROM ${SCHOL_OBJECT} WHERE ${inner} AND ${rollOk(SCHOL_ROLL)} AND associated_result.${RESULT_ELIGIBLE} ${b.op} ${b.val} AND ${REL_SCHOL_LEAD}=leads_object.id)`;
+        }
+
+        function buildWhere(kind, f) {
+            const c = F[kind], by = c.by, p = [`${c.sched} IS NOT NULL`];
+            if (f.branches.length) p.push(kind === 'branch' ? `${SESSION_BRANCH}.name IN (${sq(f.branches)})` : `${by}.${USER_BRANCH} IN (${sq(f.branches)})`);
+            if (f.users.length) p.push(`${by} IN (${sq(f.users)})`);
+            if (f.teams.length) p.push('(' + f.teams.map(t => teamPred(by, t)).join(' OR ') + ')');
+            p.push(...rangeSql(c.sched, f.forFrom, f.forTo));
+            p.push(...rangeSql(c.bookedOn, f.onFrom, f.onTo));
+            p.push(...rangeSql('AESL_Next_Follow_up_date__c', f.fuFrom, f.fuTo));
+            if (f.stages.length) p.push(`stage IN (${sq(f.stages)})`);
+            // in buildWhere, replace the two scholMinExists lines with:
+            if (f.anBand) p.push(scholBandExists('anthe', f.anBand));
+            if (f.iaBand) p.push(scholBandExists('iacst', f.iaBand));
+            return and(...p);
+        }
+
+        function buildSql(kind, f, acc) {
+            const c = F[kind], by = c.by;
+            const forBranch = kind === 'branch' ? `${SESSION_BRANCH}.name as for_branch` : `${by}.${USER_BRANCH} as for_branch`;
+            return `SELECT id as lead_id, name as lead_name, AESL_PS_ID__c as psid, stage as lead_stage, AESL_Next_Follow_up_date__c as next_followup,
+                ${c.sched} as vdate, ${c.done} as vdone, ${by} as by_id, ${by}.name as by_name, ${by}.${USER_DEPT} as by_dept, ${forBranch},
+                overall_remarks as remarks, owner.name as owner_name, owner.email as owner_email, owner.${USER_BRANCH} as owner_branch, owner.team_sales_head as rsgh
+                FROM leads_object WHERE ${buildWhere(kind, f, acc)} ORDER BY id ASC __LO__`;
+        }
+
+        // Booked-by team label
+        function bookedTeam(name, dept) {
+            if (WEBSITE_NAMES.includes(name)) return 'Website Booking';
+            if (AI_BOT_NAMES.includes(name)) return 'AI BOT';
+            if (DEPT_BRANCH.includes(dept)) return 'Branch';
+            if (DEPT_CALL.includes(dept)) return 'Call Centre';
+            return dept || '—';
+        }
+
+        // Highest iACST / ANTHE % per lead, queried from the scholarship side so multi-scholarship leads never hit the row limit
+        async function fetchScholMap(ids) {
+            const map = {}; if (!ids.length) return map;
+            const CH = 300, chunks = [];
+            for (let i = 0; i < ids.length; i += CH) chunks.push(ids.slice(i, i + CH));
+            const cohort = `((AESL_Lead_Type__c = 'iACST' AND ${levelPred('AESL_Level__c', IACST_TERM)}) OR (${typePred('AESL_Lead_Type__c', ANTHE_TYPES)} AND ${levelPred('AESL_Level__c', ANTHE_TERM)}))`;
+            const res = await runPool(chunks.map(ch => () => query(
+                `SELECT ${REL_SCHOL_LEAD} as lead_id, AESL_Lead_Type__c as ltype, associated_result.${RESULT_ELIGIBLE} as eligible
+                 FROM ${SCHOL_OBJECT} WHERE ${REL_SCHOL_LEAD} IN (${sq(ch)}) AND ${cohort} AND ${rollOk(SCHOL_ROLL)} LIMIT 20000 OFFSET 0`, SCHOL_OBJECT)), 4);
+            res.flat().forEach(r => {
+                if (!r.lead_id) return;
+                const m = map[r.lead_id] || (map[r.lead_id] = { iacstReg: false, iacstPct: null, anthePct: null });
+                const el = (r.eligible === '' || r.eligible == null) ? null : Number(r.eligible);
+                if (r.ltype === 'iACST') { m.iacstReg = true; if (el != null && (m.iacstPct == null || el > m.iacstPct)) m.iacstPct = el; }
+                else if (el != null && (m.anthePct == null || el > m.anthePct)) m.anthePct = el;
+            });
+            return map;
+        }
+
+        // ═══════════════════════════════════════════════════════════════
+        // RUN
+        // ═══════════════════════════════════════════════════════════════
+        let ROWS = [], page = 0, running = false;
+
+        async function run(force = false) {
+            if (running) return; running = true;
+            const pill = $('pill'), err = $('err'), warn = $('warn');
+            err.style.display = 'none'; warn.style.display = 'none';
+            $('apply').disabled = true; $('export').disabled = true;
+            pill.className = 'pill'; pill.textContent = 'Running…';
+            $('tw').innerHTML = '<div class="loader"></div>'; $('pager').style.display = 'none';
+            const t0 = performance.now();
+            try {
+                const f = readFilters();
+                const kinds = f.vtypes.length === 1 ? [f.vtypes[0].toLowerCase()] : ['branch', 'home'];
+
+                const results = await Promise.all(kinds.map(async k => ({ k, rows: await pageAll(buildSql(k, f), 'leads_object') })));
+                let rows = results.flatMap(r => r.rows.map(x => ({
+                    ...x, kind: r.k, vtype: r.k === 'branch' ? 'Branch Visit' : 'Home Visit',
+                    done: x.vdone != null && x.vdone !== '' && x.vdate != null && Number(x.vdone) >= istDayStartOf(x.vdate),
+                    team: bookedTeam(x.by_name, x.by_dept),
+                })));
+
+                const smap = await fetchScholMap([...new Set(rows.map(r => r.lead_id))]);
+                rows.forEach(r => Object.assign(r, smap[r.lead_id] || { iacstReg: false, iacstPct: null, anthePct: null }));
+                // exact "highest %" filters
+                rows = rows.filter(r => inBand(r.anthePct, f.anBand) && inBand(r.iacstPct, f.iaBand));
+                rows.sort((a, b) => Number(a.vdate) - Number(b.vdate));
+
+                ROWS = rows; page = 0; render();
+                pill.className = 'pill ok'; pill.textContent = `${rows.length.toLocaleString('en-IN')} visits · ${((performance.now() - t0) / 1000).toFixed(1)}s`;
+            } catch (e) {
+                console.error(e);
+                err.style.display = 'block'; err.textContent = 'Could not load visits: ' + e.message;
+                $('tw').innerHTML = '<div class="empty">Something went wrong. Check the message above and try again.</div>';
+                $('count').textContent = '—'; pill.textContent = 'Failed';
+            } finally { running = false; checkApply(); }
+        }
+
+        // ═══════════════════════════════════════════════════════════════
+        // RENDER
+        // ═══════════════════════════════════════════════════════════════
+        const COLS = ['Name', 'PSID', 'Lead Stage', 'Next Follow up Date', 'Type of Visit', 'Booked for Branch', 'Visit for Date Time', 'Visit Done Status', 'Booked By', 'Booked By Team', 'iACST 27 Registered', 'iACST 27 Highest %', 'ANTHE 27 Highest %', 'Overall Remarks', 'Lead Owner', 'Lead Owner Branch', 'Lead Owner RSGH'];
+        const pct = v => v == null ? '—' : v + '%';
+        const plainRemarks = s => String(s || '').replace(/<br\s*\/?>/gi, ' ');
+
+        function render() {
+            const b = ROWS.filter(r => r.kind === 'branch').length, h = ROWS.length - b;
+            $('count').innerHTML = `${ROWS.length.toLocaleString('en-IN')} visits<span>${b.toLocaleString('en-IN')} branch · ${h.toLocaleString('en-IN')} home</span>`;
+            $('export').disabled = !ROWS.length;
+            if (!ROWS.length) { $('tw').innerHTML = '<div class="empty">No visits match these filters.</div>'; $('pager').style.display = 'none'; return; }
+            const start = page * PAGE_SIZE, slice = ROWS.slice(start, start + PAGE_SIZE);
+            $('tw').innerHTML = `<table><thead><tr>${COLS.map((c, i) => `<th class="${i === 0 ? 'c1' : i === 1 ? 'c2' : ''}">${c}</th>`).join('')}</tr></thead><tbody>${slice.map((r, i) => `<tr>
+        <td class="c1"><a href="${BASE_URL}/leads_object/records/${esc(r.lead_id)}" target="_blank">${esc(r.lead_name || 'Open')}</a></td>
+        <td class="c2">${esc(r.psid || '—')}</td><td>${esc(r.lead_stage || '—')}</td><td>${fmtDate(r.next_followup)}</td>
+        <td><span class="tag ${r.kind}">${r.vtype}</span></td><td>${esc(r.for_branch || '—')}</td><td>${fmtDT(r.vdate)}</td>
+        <td><span class="tag ${r.done ? 'yes' : 'no'}">${r.done ? 'YES' : 'NO'}</span></td>
+        <td>${esc(r.by_name || '—')}</td><td>${esc(r.team)}</td>
+        <td>${r.iacstReg ? 'Yes' : 'No'}</td><td>${pct(r.iacstPct)}</td><td>${pct(r.anthePct)}</td>
+        <td>${r.remarks ? `<div class="rem" data-i="${start + i}">${esc(plainRemarks(r.remarks))}</div>` : '—'}</td>
+        <td>${esc(r.owner_name || r.owner_email || '—')}</td><td>${esc(r.owner_branch || '—')}</td><td>${esc(r.rsgh || '—')}</td></tr>`).join('')}</tbody></table>`;
+            const pages = Math.ceil(ROWS.length / PAGE_SIZE);
+            $('pager').style.display = 'flex';
+            const W = 5, s = Math.max(0, Math.min(page - 2, pages - W)), e = Math.min(pages, s + W);
+            let nums = '';
+            for (let i = s; i < e; i++) nums += `<button class="pg${i === page ? ' on' : ''}" data-p="${i}">${i + 1}</button>`;
+            $('pager').innerHTML = `<span>${start + 1}–${Math.min(start + PAGE_SIZE, ROWS.length)} of ${ROWS.length.toLocaleString('en-IN')}</span>
+    <div class="pgs"><button class="btn" id="prev" ${page === 0 ? 'disabled' : ''}>Previous</button>${nums}<button class="btn" id="next" ${page >= pages - 1 ? 'disabled' : ''}>Next</button></div>`;
+        }
+
+
+
+        function exportCsv() {
+            const q = v => `"${String(v ?? '').replace(/"/g, '""')}"`;
+            const lines = [COLS.map(q).join(',')];
+            ROWS.forEach(r => lines.push([
+                r.lead_name, r.psid, r.lead_stage, fmtDate(r.next_followup), r.vtype, r.for_branch, fmtDT(r.vdate), r.done ? 'YES' : 'NO', r.by_name, r.team,
+                r.iacstReg ? 'Yes' : 'No', pct(r.iacstPct), pct(r.anthePct), plainRemarks(r.remarks), r.owner_name || r.owner_email, r.owner_branch, r.rsgh,
+            ].map(q).join(',')));
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(new Blob(['\ufeff' + lines.join('\n')], { type: 'text/csv;charset=utf-8' }));
+            a.download = `visit_tracking_${Date.now()}.csv`;
+            document.body.appendChild(a); a.click(); a.remove();
+        }
+
+        // ═══════════════════════════════════════════════════════════════
+        // INIT
+        // ═══════════════════════════════════════════════════════════════
+        function resetFilters() {
+            Object.values(MS).forEach(m => m.clear());
+            Object.values(RG).forEach(r => r.clear());
+            RG['r-for'].set(todayIso());
+            if (MY_BRANCH) MS['f-branch'].select([MY_BRANCH]);
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            makeMulti('f-branch', 'All branches');
+            makeMulti('f-team', 'All teams', TEAMS.map(t => ({ value: t, name: t })), false);
+            makeMulti('f-user', 'All users');
+            makeMulti('f-vtype', 'Home + Branch', [{ value: 'Home', name: 'Home' }, { value: 'Branch', name: 'Branch' }], false);
+            makeMulti('f-stage', 'All stages', STAGES.map(s => ({ value: s, name: s })), false);
+            makeMulti('f-an', 'All', BANDS.map(b => ({ value: b.value, name: b.name })), false, true);
+            makeMulti('f-ia', 'All', BANDS.map(b => ({ value: b.value, name: b.name })), false, true);
+            makeRange('r-for', checkApply);
+            makeRange('r-on');
+            makeRange('r-fu');
+            RG['r-for'].set(todayIso());   // default: today
+            $('apply').addEventListener('click', () => { if (!$('apply').disabled) run(); });
+            $('reset').addEventListener('click', () => { resetFilters(); clearResults(); checkApply(); });
+            checkApply();
+            $('export').addEventListener('click', exportCsv);
+            $('pager').addEventListener('click', e => {
+                const n = e.target.closest('[data-p]');
+                if (n) { page = +n.dataset.p; render(); $('tw').scrollTop = 0; return; }
+                if (e.target.closest('#prev') && page > 0) { page--; render(); $('tw').scrollTop = 0; }
+                if (e.target.closest('#next')) { page++; render(); $('tw').scrollTop = 0; }
+            });
+            $('tw').addEventListener('click', e => {
+                const el = e.target.closest('.rem'); if (!el) return;
+                $('rem-body').innerHTML = esc(ROWS[+el.dataset.i].remarks).replace(/&lt;br\s*\/?&gt;/gi, '<br>');
+                $('rem-modal').classList.add('open');
+            });
+            $('rem-close').addEventListener('click', () => $('rem-modal').classList.remove('open'));
+            $('rem-modal').addEventListener('click', e => { if (e.target.id === 'rem-modal') $('rem-modal').classList.remove('open'); });
+
+            // dropdown options: active branches + all users (booked-by can be a system user, so no status filter)
+            try {
+                const branches = await query(`SELECT id, name FROM ${BRANCH_OBJECT} WHERE ${BRANCH_ACTIVE} ORDER BY name ASC LIMIT 5000 OFFSET 0`, BRANCH_OBJECT);
+                MS['f-branch'].set(branches.filter(b => b.name).map(b => ({ value: b.name, name: b.name })));
+            } catch (e) { console.error('Branch options failed', e); }
+
+            try {
+                MY_BRANCH = await loadMyBranch();
+                if (MY_BRANCH) MS['f-branch'].select([MY_BRANCH]);
+            } catch (e) { console.error('Default branch failed', e); }
+            READY = true; checkApply();
+
+
+
+
+
+            try {
+                let all = [], off = 0;
+                while (true) {
+                    const rows = await query(`SELECT id, name, email FROM user WHERE status IN (${sq(USER_STATUS)}) ORDER BY name ASC LIMIT 5000 OFFSET ${off}`, 'user');
+                    all = all.concat(rows); if (rows.length < 5000) break; off += 5000;
+                }
+                MS['f-user'].set(all.filter(u => u.id).map(u => ({ value: u.id, name: u.email ? `${u.name} (${u.email})` : u.name })));
+            } catch (e) { console.error('User options failed', e); }
+
+            // run();
+        });
+
+        function clearResults() {
+            ROWS = []; page = 0;
+            $('tw').innerHTML = '<div class="empty">Choose your filters and click Apply.</div>';
+            $('pager').style.display = 'none'; $('count').textContent = '—'; $('export').disabled = true;
+            $('err').style.display = 'none'; $('warn').style.display = 'none';
+            $('pill').className = 'pill'; $('pill').textContent = 'Not yet run';
+        }
+
+        function checkApply() {
+            const { from: a, to: b } = RG['r-for'].get(), e = $('r-for-err');
+            let msg = '';
+            if (a && b && daySpan(a, b) > MAX_RANGE_DAYS) msg = `Date range can't be more than ${MAX_RANGE_DAYS} days.`;
+            e.textContent = msg; e.style.display = msg ? 'block' : 'none';
+            const ok = !!(a && b) && !msg;
+            $('apply').disabled = !ok || running || !READY;
+            $('apply').title = ok ? '' : (msg || 'Select Visit book for date to enable Apply');
+        }
+    </script>
+
+
+</body>
+
+</html>
