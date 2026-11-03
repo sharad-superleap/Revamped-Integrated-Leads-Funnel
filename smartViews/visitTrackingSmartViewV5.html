@@ -732,8 +732,16 @@
 
         // Lead fields, per visit type
         const F = {
-            branch: { sched: 'branch_visit_scheduled_for_date_time', done: 'branch_visit_done_date', by: 'branch_visit_booked_by', bookedOn: 'branch_visit_booked_on' },   // ⚠ confirm bookedOn API names
-            home: { sched: 'home_visit_scheduled_date_time', done: 'home_visit_done_date', by: 'home_visit_booked_by', bookedOn: 'home_visit_booked_on' },
+            branch: { 
+                sched: 'branch_visit_scheduled_for_date_time', 
+                done: 'branch_visit_done_date', 
+                by: 'branch_visit_booked_by', 
+                bookedOn: 'branch_visit_scheduled_date_time' },   // ⚠ confirm bookedOn API names
+            home: { 
+                sched: 'home_visit_scheduled_date_time', 
+                done: 'home_visit_done_date', 
+                by: 'home_visit_booked_by', 
+                bookedOn: 'home_visit_scheduled_on_date_time' },
         };
 
 
